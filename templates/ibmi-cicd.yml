@@ -1,0 +1,290 @@
+spec:
+  inputs:
+    build_stage:
+      type: string
+      default: "build"
+      description: "Pipeline stage for the IBM i TOBi (makei) build job"
+    test_stage:
+      type: string
+      default: "test"
+      description: "Pipeline stage for the iRPGUnit test execution job"
+    package_stage:
+      type: string
+      default: "package"
+      description: "Pipeline stage for the #PACK job"
+    image:
+      type: string
+      default: "alpine:3.20"
+      description: "Container image used on the GitLab Linux runner"
+    build_lib:
+      type: string
+      default: "PACKAGER"
+      description: "Target QSYS library on the IBM i host for compiling sources and packaging"
+    rpgunit_lib:
+      type: string
+      default: "RPGUNIT"
+      description: "Library on the IBM i host containing iRPGUnit (RUCRTRPG, RUCALLTST)"
+    test_src:
+      type: string
+      default: "test/qrpglesrc/pkgtest.test.sqlrpgle"
+      description: "Repository-relative path to the iRPGUnit .test.sqlrpgle source file (set to '*NONE' to skip iRPGUnit)"
+    test_pgm:
+      type: string
+      default: "TPKGTEST"
+      description: "Compiled iRPGUnit test service program name in build_lib"
+    objects:
+      type: string
+      default: "*ALL"
+      description: "Space-separated object names or generic patterns to package with #PACK"
+    object_types:
+      type: string
+      default: "*ALL"
+      description: "Space-separated IBM i object types to package with #PACK"
+    version:
+      type: string
+      default: "$CI_COMMIT_SHORT_SHA"
+      description: "Version string stamped into USRDFNATR of each packaged object and save file (truncated to 10 characters)"
+    target_release:
+      type: string
+      default: "*CURRENT"
+      description: "IBM i SAVOBJ Target Release (TGTRLS), e.g. *CURRENT, *PRV, V7R4M0"
+    packager_lib:
+      type: string
+      default: "PACKAGER"
+      description: "Library on the IBM i host where #PACK and #UNPACK are installed"
+    artifact_dir:
+      type: string
+      default: "artifacts"
+      description: "Runner workspace directory where downloaded .savf and HTML manifest artifacts are stored"
+---
+
+.ibmi_cicd_ssh_base: &ibmi_cicd_ssh_base
+  image: $[[ inputs.image ]]
+  before_script:
+    - apk add --no-cache openssh-client sshpass tar bash
+    - |
+      if [ -z "${IBMI_HOST:-}" ] || [ -z "${IBMI_USER:-}" ]; then
+        echo "ERROR: IBMI_HOST and IBMI_USER must be configured in GitLab CI/CD Variables."
+        exit 1
+      fi
+      IBMI_SSH_PORT="${IBMI_PORT:-22}"
+      export REMOTE_DIR="${IBMI_BUILD_DIR:-/home/${IBMI_USER}/builds/${CI_PROJECT_NAME}}"
+      mkdir -p ~/.ssh
+      chmod 700 ~/.ssh
+      cat <<EOF > ~/.ssh/config
+      Host ibmi-target
+        HostName ${IBMI_HOST}
+        User ${IBMI_USER}
+        Port ${IBMI_SSH_PORT}
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+        ConnectTimeout 15
+        ServerAliveInterval 15
+        ServerAliveCountMax 4
+      EOF
+      chmod 600 ~/.ssh/config
+
+      if [ -n "${IBMI_SSH_PRIVATE_KEY:-}" ]; then
+        printf "%s\n" "${IBMI_SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/id_ibmi
+        chmod 600 ~/.ssh/id_ibmi
+        echo "  IdentityFile ~/.ssh/id_ibmi" >> ~/.ssh/config
+        SSH_CMD="ssh ibmi-target"
+        SCP_CMD="scp -P ${IBMI_SSH_PORT} -i ~/.ssh/id_ibmi -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+      elif [ -n "${IBMI_PASSWORD:-}" ]; then
+        export SSHPASS="${IBMI_PASSWORD}"
+        SSH_CMD="sshpass -e ssh ibmi-target"
+        SCP_CMD="sshpass -e scp -P ${IBMI_SSH_PORT} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+      else
+        echo "ERROR: Either IBMI_SSH_PRIVATE_KEY or IBMI_PASSWORD must be set in GitLab CI/CD Variables."
+        exit 1
+      fi
+
+      run_ssh() {
+        local attempt
+        for attempt in 1 2 3 4 5; do
+          if $SSH_CMD "$1"; then
+            return 0
+          fi
+          echo "SSH attempt ${attempt} failed, retrying in 3s..." >&2
+          sleep 3
+        done
+        return 1
+      }
+
+      run_scp_to() {
+        local src="$1"
+        local dst="$2"
+        local attempt
+        for attempt in 1 2 3 4 5; do
+          if $SCP_CMD "$src" "${IBMI_USER}@${IBMI_HOST}:${dst}"; then
+            return 0
+          fi
+          echo "SCP upload attempt ${attempt} failed, retrying in 3s..." >&2
+          sleep 3
+        done
+        return 1
+      }
+
+      run_scp_from() {
+        local src="$1"
+        local dst="$2"
+        local attempt
+        for attempt in 1 2 3 4 5; do
+          if $SCP_CMD -r "${IBMI_USER}@${IBMI_HOST}:${src}" "$dst"; then
+            return 0
+          fi
+          echo "SCP download attempt ${attempt} failed, retrying in 3s..." >&2
+          sleep 3
+        done
+        return 1
+      }
+
+ibmi:build:
+  <<: *ibmi_cicd_ssh_base
+  stage: $[[ inputs.build_stage ]]
+  script:
+    - echo "=== Archiving project sources for upload to ${IBMI_HOST}:${REMOTE_DIR} ==="
+    - tar --exclude='.git' --exclude='artifacts' --exclude='build-logs' -czf /tmp/pkg_sync.tar.gz .
+    - run_ssh "mkdir -p '${REMOTE_DIR}'"
+    - run_scp_to /tmp/pkg_sync.tar.gz "${REMOTE_DIR}/pkg_sync.tar.gz"
+    - |
+      run_ssh "export PATH=/QOpenSys/pkgs/bin:\$PATH && \
+        export lib1='$[[ inputs.build_lib ]]' && \
+        cd '${REMOTE_DIR}' && \
+        tar -xzf pkg_sync.tar.gz && \
+        rm -f pkg_sync.tar.gz && \
+        echo '=== Ensuring build library $[[ inputs.build_lib ]] exists ===' && \
+        (system \"CRTLIB LIB($[[ inputs.build_lib ]]) TEXT('GitLab CI Build Library')\" || true) && \
+        echo '=== Running IBM i TOBi (makei) build ===' && \
+        if command -v makei >/dev/null 2>&1; then \
+          makei build; \
+        else \
+          PY_BIN=\$(for py in /QOpenSys/pkgs/bin/python3*; do \$py -c 'import ibm_db_dbi' 2>/dev/null && echo \$py && break; done); \
+          TOBI_ENTRY=\"\${TOBI_DIR:-/home/\${USER}/projects/ibmi-tobi}/src/makei/cli/makei_entry.py\"; \
+          if [ -n \"\$PY_BIN\" ] && [ -f \"\$TOBI_ENTRY\" ]; then \
+            \$PY_BIN \"\$TOBI_ENTRY\" build || [ ! -s .logs/failed.log ]; \
+          else \
+            gmake BIN_LIB='$[[ inputs.build_lib ]]'; \
+          fi; \
+        fi && \
+        PY_BIN=\$(for py in /QOpenSys/pkgs/bin/python3*; do \$py -c 'import ibm_db_dbi' 2>/dev/null && echo \$py && break; done) && \
+        \$PY_BIN -c \"
+      import ibm_db_dbi
+      conn = ibm_db_dbi.connect()
+      cur = conn.cursor()
+      for cmd in [
+          'CHGCMD CMD($[[ inputs.build_lib ]]/PACK) PGM($[[ inputs.build_lib ]]/PACKC)',
+          'CRTDUPOBJ OBJ(PACK) FROMLIB($[[ inputs.build_lib ]]) OBJTYPE(*CMD) TOLIB($[[ inputs.build_lib ]]) NEWOBJ(#PACK)',
+          'CHGCMD CMD($[[ inputs.build_lib ]]/#PACK) PGM($[[ inputs.build_lib ]]/PACKC)',
+          'CHGCMD CMD($[[ inputs.build_lib ]]/UNPACK) PGM($[[ inputs.build_lib ]]/UNPACKC)',
+          'CRTDUPOBJ OBJ(UNPACK) FROMLIB($[[ inputs.build_lib ]]) OBJTYPE(*CMD) TOLIB($[[ inputs.build_lib ]]) NEWOBJ(#UNPACK)',
+          'CHGCMD CMD($[[ inputs.build_lib ]]/#UNPACK) PGM($[[ inputs.build_lib ]]/UNPACKC)'
+      ]:
+          try:
+              cur.execute('CALL QSYS2.QCMDEXC(?)', (cmd,))
+          except Exception:
+              pass
+      \""
+    - mkdir -p build-logs
+    - run_scp_from "${REMOTE_DIR}/.logs/joblog.json" build-logs/joblog.json || true
+  artifacts:
+    when: always
+    paths:
+      - build-logs/
+    expire_in: 7 days
+
+ibmi:test:
+  <<: *ibmi_cicd_ssh_base
+  stage: $[[ inputs.test_stage ]]
+  needs:
+    - job: ibmi:build
+      artifacts: false
+  script:
+    - |
+      if [ "$[[ inputs.test_src ]]" = "*NONE" ]; then
+        echo "Skipping iRPGUnit tests (test_src=*NONE)."
+        exit 0
+      fi
+      echo "=== Compiling and running iRPGUnit suite $[[ inputs.build_lib ]]/$[[ inputs.test_pgm ]] on ${IBMI_HOST} ==="
+      run_ssh "export PATH=/QOpenSys/pkgs/bin:\$PATH && \
+        cd '${REMOTE_DIR}' && \
+        rm -f '${REMOTE_DIR}/rpgunit-results.xml' && \
+        PY_BIN=\$(for py in /QOpenSys/pkgs/bin/python3*; do \$py -c 'import ibm_db_dbi' 2>/dev/null && echo \$py && break; done) && \
+        \$PY_BIN -c \"
+      import sys
+      import ibm_db_dbi
+
+      build_lib = '$[[ inputs.build_lib ]]'
+      rpgunit_lib = '$[[ inputs.rpgunit_lib ]]'
+      test_pgm = '$[[ inputs.test_pgm ]]'
+      remote_dir = '${REMOTE_DIR}'
+      xml_path = remote_dir + '/rpgunit-results.xml'
+      test_src = remote_dir + '/$[[ inputs.test_src ]]'
+
+      conn = ibm_db_dbi.connect()
+      cur = conn.cursor()
+
+      def run_cl(cmd, ignore_errors=False):
+          print('>>> ' + cmd)
+          sys.stdout.flush()
+          try:
+              cur.execute('CALL QSYS2.QCMDEXC(?)', (cmd,))
+              return True
+          except Exception as exc:
+              if not ignore_errors:
+                  print('ERROR: ' + str(exc))
+                  cur.execute(
+                      \\\"SELECT MESSAGE_ID, MESSAGE_TYPE, MESSAGE_TEXT, MESSAGE_SECOND_LEVEL_TEXT \\\"
+                      \\\"FROM TABLE(QSYS2.JOBLOG_INFO('*')) \\\"
+                      \\\"WHERE MESSAGE_TYPE IN ('DIAGNOSTIC', 'ESCAPE')\\\"
+                  )
+                  for row in cur.fetchall()[-30:]:
+                      print('  [JOBLOG]', row[0], row[1], row[2], '|', str(row[3])[:140])
+                  sys.stdout.flush()
+              return False
+
+      run_cl('CHGCURLIB CURLIB(' + build_lib + ')', ignore_errors=True)
+      run_cl('ADDLIBLE LIB(' + rpgunit_lib + ')', ignore_errors=True)
+      run_cl('ADDLIBLE LIB(' + build_lib + ')', ignore_errors=True)
+
+      if not run_cl(
+          rpgunit_lib + '/RUCRTRPG TSTPGM(' + build_lib + '/' + test_pgm + ') '
+          'SRCSTMF(\\'' + test_src + '\\') '
+          'TGTCCSID(*JOB) DBGVIEW(*SOURCE) '
+          'COPTION(*EVENTF *SRCSTMT *NODEBUGIO) '
+          'RPGPPOPT(*LVL2) INCDIR(\\'' + remote_dir + '\\')'
+      ):
+          sys.exit(1)
+
+      if not run_cl(
+          rpgunit_lib + '/RUCALLTST TSTPGM(' + build_lib + '/' + test_pgm + ') '
+          'TSTPRC(*ALL) ORDER(*API) DETAIL(*ALL) OUTPUT(*ALLWAYS) '
+          'LIBL(*CURRENT) JOBD(*DFT) RCLRSC(*NO) '
+          'XMLSTMF(\\'' + xml_path + '\\')'
+      ):
+          sys.exit(1)
+      \""
+    - run_scp_from "${REMOTE_DIR}/rpgunit-results.xml" "${CI_PROJECT_DIR}/rpgunit-results.xml"
+    - cat "${CI_PROJECT_DIR}/rpgunit-results.xml"
+  artifacts:
+    when: always
+    paths:
+      - rpgunit-results.xml
+    reports:
+      junit: rpgunit-results.xml
+    expire_in: 30 days
+
+include:
+  - local: '/templates/pack.yml'
+    inputs:
+      job_name: "ibmi:pack"
+      stage: $[[ inputs.package_stage ]]
+      image: $[[ inputs.image ]]
+      src_lib: $[[ inputs.build_lib ]]
+      objects: $[[ inputs.objects ]]
+      object_types: $[[ inputs.object_types ]]
+      version: $[[ inputs.version ]]
+      target_release: $[[ inputs.target_release ]]
+      packager_lib: $[[ inputs.packager_lib ]]
+      artifact_dir: $[[ inputs.artifact_dir ]]
+

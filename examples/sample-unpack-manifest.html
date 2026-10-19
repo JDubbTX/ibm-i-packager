@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>IBM i Unpack Deployment Report - Version REL-26.10A</title>
+  <style>
+    :root{--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#f8fafc;--muted:#94a3b8;--accent:#38bdf8;--ok:#22c55e;--warn:#f59e0b;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);padding:2rem;line-height:1.5;}
+    .container{max-width:1380px;margin:0 auto;}
+    .hero{background:linear-gradient(135deg,#0f766e 0%,#1e3a8a 100%);border-radius:12px;padding:1.75rem 2rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;box-shadow:0 10px 25px rgba(0,0,0,0.3);}
+    .hero h1{font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;}
+    .hero .subtitle{color:#ccfbf1;font-size:0.95rem;margin-top:0.25rem;}
+    .ver-pill{background:rgba(15,23,42,0.75);border:2px solid #5eead4;padding:0.75rem 1.25rem;border-radius:10px;text-align:right;}
+    .ver-pill .lbl{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:#99f6e4;display:block;}
+    .ver-pill .val{font-size:1.5rem;font-weight:800;font-family:monospace;color:#ffffff;}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;}
+    .card .k{font-size:0.75rem;text-transform:uppercase;color:var(--muted);letter-spacing:0.05em;}
+    .card .v{font-size:1.05rem;font-weight:600;margin-top:0.25rem;word-break:break-all;}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:1rem;flex-wrap:wrap;}
+    .search{background:var(--card);border:1px solid var(--border);color:var(--text);padding:0.6rem 1rem;border-radius:8px;width:340px;font-size:0.9rem;}
+    .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;text-align:left;}
+    th{background:#0f172a;color:var(--muted);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;padding:0.85rem 0.9rem;border-bottom:1px solid var(--border);}
+    td{padding:0.7rem 0.9rem;border-bottom:1px solid rgba(51,65,85,0.6);font-size:0.86rem;}
+    tr:hover td{background:rgba(56,189,248,0.06);}
+    .mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;}
+    .badge{display:inline-block;padding:0.18rem 0.5rem;border-radius:6px;font-size:0.75rem;font-weight:600;font-family:monospace;background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid rgba(56,189,248,0.3);}
+    .b-ok{background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3);}
+    .b-warn{background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);}
+    .b-tier{background:rgba(168,85,247,0.15);color:#c084fc;border:1px solid rgba(168,85,247,0.3);}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <div>
+        <h1>IBM i CI/CD Unpack Deployment Report (#UNPACK)</h1>
+        <div class="subtitle">IFS Stream File: /cicd/artifacts/BUILDLIB_REL-26.10A.savf</div>
+      </div>
+      <div class="ver-pill">
+        <span class="lbl">Package Version (USRDFNATR)</span>
+        <span class="val">REL-26.10A</span>
+      </div>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="k">Package Version</div><div class="v mono">REL-26.10A</div></div>
+      <div class="card"><div class="k">Total Unpacked</div><div class="v">8 (6 replaced, 2 new)</div></div>
+      <div class="card"><div class="k">Library Mapping</div><div class="v">/cicd/config/unpack-map.json</div></div>
+      <div class="card"><div class="k">Rollback Save File</div><div class="v mono">QGPL/ROLLBACK01</div></div>
+      <div class="card"><div class="k">Completed Timestamp</div><div class="v">2026-10-18-08.16.00.000000</div></div>
+    </div>
+    <div class="toolbar">
+      <h2>Unpacked Objects (Precedence Order)</h2>
+      <input type="text" id="q" class="search" placeholder="Filter by library, object, type, or tier..." onkeyup="filterRows()">
+    </div>
+    <div class="table-wrap">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>Order</th><th>Precedence Tier</th><th>Saved Lib</th><th>Target Lib</th>
+            <th>Object Name</th><th>Type</th><th>Attr</th><th>Version</th>
+            <th>Action</th><th>Authorities</th><th>Data Policy</th><th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><span class="badge b-tier">Tier 15: Msgf/DtaAra/DtaQ</span></td><td class="mono">BUILDLIB</td><td class="mono">PRODDTA</td><td class="mono">TSTDTAARA</td><td><span class="badge">*DTAARA</span></td><td class="mono"></td><td><span class="badge b-ok">REL-26.10A</span></td><td><span class="badge b-warn">Replaced Existing</span></td><td>Preserved Existing Auths</td><td>-</td><td>Application Control Data Area</td></tr>
+          <tr><td>2</td><td><span class="badge b-tier">Tier 20: Physical PF/Table</span></td><td class="mono">BUILDLIB</td><td class="mono">PRODDTA</td><td class="mono">TSTCUSTPF</td><td><span class="badge">*FILE</span></td><td class="mono">PF</td><td><span class="badge b-ok">REL-26.10A</span></td><td><span class="badge b-warn">Replaced Existing</span></td><td>Preserved Existing Auths</td><td><span class="badge b-ok">Preserved Data (*MAP *DROP)</span></td><td>Customer Master SQL Table</td></tr>
+          <tr><td>3</td><td><span class="badge b-tier">Tier 20: Physical PF/Table</span></td><td class="mono">BUILDLIB</td><td class="mono">PRODDTA</td><td class="mono">TSTSYSCFG</td><td><span class="badge">*FILE</span></td><td class="mono">PF</td><td><span class="badge b-ok">REL-26.10A</span></td><td><span class="badge b-warn">Replaced Existing</span></td><td>Preserved Existing Auths</td><td><span class="badge b-warn">Overridden (Seed Data)</span></td><td>System Reference Configuration</td></tr>
+          <tr><td>4</td><td><span class="badge b-tier">Tier 30: Logical LF/View/Idx</span></td><td class="mono">BUILDLIB</td><td class="mono">PRODDTA</td><td class="mono">TSTCUSTVW</td><td><span class="badge">*FILE</span></td><td class="mono">LF</td><td><span class="badge b-ok">REL-26.10A</span></td><td><span class="badge b-warn">Replaced Existing</span></td><td>Preserved Existing Auths</td><td>-</td><td>Active Customers View</td></tr>
+          <tr><td>5</td><td><span class="badge b-tier">Tier 40: Device/UI</span></td><td class="mono">BUILDLIB</td><td class="mono">PRODPGM</td><td class="mono">ORDDSPF</td><td><span class="badge">*FILE</span></td><td class="mono">DSPF</td><td><span class="badge b-ok">REL-26.10A</span></td><td><span class="badge b-ok">Created New</span></td><td>From Package</td><td>-</td><td>Order Entry Display File</td></tr>
+          <tr><td>6</td><td><span class="badge b-tier">Tier 60: Service Program</span></td><td class="mono">BUILDLIB</td><td class="mono">PRODPGM</td><td class="mono">TSTSRVPGM</td><td><span class="badge">*SRVPGM</span></td><td class="mono">RPGLE</td><td><span class="badge b-ok">REL-26.10A</span></td><td><span class="badge b-warn">Replaced Existing</span></td><td>Preserved Existing Auths</td><td>-</td><td>Tax Calculation Service Program</td></tr>
+          <tr><td>7</td><td><span class="badge b-tier">Tier 70: Program/SQLPkg</span></td><td class="mono">BUILDLIB</td><td class="mono">PRODPGM</td><td class="mono">TSTPGM1</td><td><span class="badge">*PGM</span></td><td class="mono">SQLRPGLE</td><td><span class="badge b-ok">REL-26.10A</span></td><td><span class="badge b-warn">Replaced Existing</span></td><td>Preserved Existing Auths</td><td>-</td><td>Order Processing Driver</td></tr>
+          <tr><td>8</td><td><span class="badge b-tier">Tier 80: Command/Other</span></td><td class="mono">BUILDLIB</td><td class="mono">PRODPGM</td><td class="mono">TSTCMD1</td><td><span class="badge">*CMD</span></td><td class="mono"></td><td><span class="badge b-ok">REL-26.10A</span></td><td><span class="badge b-ok">Created New</span></td><td>From Package</td><td>-</td><td>Order Entry Command</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <script>
+      function filterRows(){
+        var q=document.getElementById("q").value.toUpperCase(),
+            tr=document.getElementById("tbl").getElementsByTagName("tr");
+        for(var i=1;i<tr.length;i++){
+          tr[i].style.display=tr[i].innerText.toUpperCase().indexOf(q)>-1?"":"none";
+        }
+      }
+    </script>
+  </div>
+</body>
+</html>

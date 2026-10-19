@@ -1,0 +1,75 @@
+/* ========================================================================= */
+/* Program:     BUILD                                                        */
+/* Source File: BUILD.clle                                                   */
+/* Description: Builds the IBM i CI/CD Packager (#PACK and #UNPACK)          */
+/*              commands and programs from either IFS source directory       */
+/*              or QSYS source physical files into &TGTLIB.                  */
+/*                                                                           */
+/* Example Call (from IFS):                                                  */
+/*   CALL PGM(BUILD) PARM(('CICDTOOLS ') ('/home/cicd/packager/src'))        */
+/* ========================================================================= */
+             PGM        PARM(&TGTLIB &SRCDIR)
+
+             DCL        VAR(&TGTLIB)  TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SRCDIR)  TYPE(*CHAR) LEN(128)
+             DCL        VAR(&STMF)    TYPE(*CHAR) LEN(256)
+             DCL        VAR(&INCDIR)  TYPE(*CHAR) LEN(256)
+
+             /* Ensure target library exists */
+             CHKOBJ     OBJ(QSYS/&TGTLIB) OBJTYPE(*LIB)
+             MONMSG     MSGID(CPF9801) EXEC(DO)
+                CRTLIB     LIB(&TGTLIB) TEXT('IBM i CI/CD Packager Tools')
+             ENDDO
+
+             ADDLIBLE   LIB(&TGTLIB) POSITION(*FIRST)
+             MONMSG     MSGID(CPF2103)
+
+             CHGVAR     VAR(&INCDIR) VALUE(%TRIM(&SRCDIR) *CAT '/qrpglesrc')
+
+             /* 1. Compile PACKR (SQLRPGLE) */
+             CHGVAR     VAR(&STMF) VALUE(%TRIM(&SRCDIR) *CAT +
+                          '/qrpglesrc/PACKR.sqlrpgle')
+             CRTSQLRPGI OBJ(&TGTLIB/PACKR) SRCSTMF(&STMF) +
+                          COMMIT(*NONE) OBJTYPE(*PGM) +
+                          RPGPPOPT(*LVL2) INCDIR(&INCDIR) +
+                          REPLACE(*YES) DBGVIEW(*SOURCE)
+
+             /* 2. Compile PACKC (CLLE) */
+             CHGVAR     VAR(&STMF) VALUE(%TRIM(&SRCDIR) *CAT +
+                          '/qcllesrc/PACKC.clle')
+             CRTBNDCL   PGM(&TGTLIB/PACKC) SRCSTMF(&STMF) +
+                          DFTACTGRP(*NO) ACTGRP(*NEW) +
+                          REPLACE(*YES) DBGVIEW(*SOURCE)
+
+             /* 3. Compile #PACK Command */
+             CHGVAR     VAR(&STMF) VALUE(%TRIM(&SRCDIR) *CAT +
+                          '/qcmdsrc/PACK.cmd')
+             CRTCMD     CMD(&TGTLIB/#PACK) PGM(&TGTLIB/PACKC) +
+                          SRCSTMF(&STMF) ALLOW(*ALL) REPLACE(*YES)
+
+             /* 4. Compile UNPACKR (SQLRPGLE) */
+             CHGVAR     VAR(&STMF) VALUE(%TRIM(&SRCDIR) *CAT +
+                          '/qrpglesrc/UNPACKR.sqlrpgle')
+             CRTSQLRPGI OBJ(&TGTLIB/UNPACKR) SRCSTMF(&STMF) +
+                          COMMIT(*NONE) OBJTYPE(*PGM) +
+                          RPGPPOPT(*LVL2) INCDIR(&INCDIR) +
+                          REPLACE(*YES) DBGVIEW(*SOURCE)
+
+             /* 5. Compile UNPACKC (CLLE) */
+             CHGVAR     VAR(&STMF) VALUE(%TRIM(&SRCDIR) *CAT +
+                          '/qcllesrc/UNPACKC.clle')
+             CRTBNDCL   PGM(&TGTLIB/UNPACKC) SRCSTMF(&STMF) +
+                          DFTACTGRP(*NO) ACTGRP(*NEW) +
+                          REPLACE(*YES) DBGVIEW(*SOURCE)
+
+             /* 6. Compile #UNPACK Command */
+             CHGVAR     VAR(&STMF) VALUE(%TRIM(&SRCDIR) *CAT +
+                          '/qcmdsrc/UNPACK.cmd')
+             CRTCMD     CMD(&TGTLIB/#UNPACK) PGM(&TGTLIB/UNPACKC) +
+                          SRCSTMF(&STMF) ALLOW(*ALL) REPLACE(*YES)
+
+             SNDPGMMSG  MSGID(CPF9897) MSGF(QCPFMSG) +
+                          MSGDTA('Successfully built #PACK and #UNPACK +
+                          in library ' *CAT %TRIM(&TGTLIB)) +
+                          MSGTYPE(*COMP)
+             ENDPGM

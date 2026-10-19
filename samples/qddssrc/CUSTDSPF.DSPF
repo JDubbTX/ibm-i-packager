@@ -1,0 +1,21 @@
+     A*=====================================================================
+     A* Sample DDS Display File: CUSTDSPF (Customer Inquiry Screen)
+     A* Built with IBM i TOBi (makei) -> *FILE (DSPF) - Precedence Tier 40
+     A*=====================================================================
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      REF(CUSTPF)
+     A                                      CA03(03 'Exit')
+     A          R CUSTSCN
+     A                                  1 25'CUSTOMER ORDER INQUIRY'
+     A                                      DSPATR(HI)
+     A                                  4  4'Customer ID . . . :'
+     A            CUSTID    R        B  4 26REFFLD(CUSTID)
+     A                                  6  4'Customer Name . . :'
+     A            CUSTNAME  R        O  6 26REFFLD(CUSTNAME)
+     A                                  8  4'State Code  . . . :'
+     A            CUSTSTATE R        O  8 26REFFLD(CUSTSTATE)
+     A                                 10  4'Account Balance . :'
+     A            CUSTBAL   R        O 10 26REFFLD(CUSTBAL)
+     A                                      EDTCDE(J)
+     A                                 23  2'F3=Exit'
+     A                                      COLOR(BLU)

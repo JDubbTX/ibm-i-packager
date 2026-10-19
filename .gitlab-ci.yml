@@ -1,0 +1,107 @@
+# ==============================================================================
+# GitLab CI/CD Catalog Pipeline for ibm-i-packager (#PACK / #UNPACK)
+#
+# Dogfoods the reusable GitLab CI/CD Components defined in templates/:
+#   - templates/ibmi-cicd.yml (TOBi build + iRPGUnit test + #PACK)
+#   - templates/pack.yml      (#PACK standalone component)
+#   - templates/unpack.yml    (#UNPACK standalone component)
+#
+# And publishes semantic version tag releases (e.g. 1.0.0) to the
+# GitLab CI/CD Catalog via the release stage.
+#
+# Required GitLab CI/CD Variables (Settings -> CI/CD -> Variables):
+#   - IBMI_HOST            : IBM i hostname or IP (e.g., opensrc.rzkh.de)
+#   - IBMI_USER            : IBM i SSH user profile (e.g., jweirich)
+#   - IBMI_SSH_PRIVATE_KEY : SSH private key for IBMI_USER (or set IBMI_PASSWORD)
+# ==============================================================================
+
+stages:
+  - build
+  - test
+  - package
+  - deploy
+  - release
+
+include:
+  # 1. Dogfood the end-to-end IBM i CI/CD component (ibmi:build, ibmi:test, ibmi:pack)
+  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/ibmi-cicd@$CI_COMMIT_SHA
+    inputs:
+      build_stage: build
+      test_stage: test
+      package_stage: package
+      build_lib: "PACKAGER"
+      rpgunit_lib: "RPGUNIT"
+      test_src: "test/qrpglesrc/pkgtest.test.sqlrpgle"
+      test_pgm: "TPKGTEST"
+      objects: "PACK* UNPACK* #PACK #UNPACK"
+      object_types: "*PGM *CMD"
+      version: "$CI_COMMIT_SHORT_SHA"
+      packager_lib: "PACKAGER"
+      artifact_dir: "artifacts"
+
+  # 2. Dogfood the standalone #PACK component on the sample multi-tier application
+  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/pack@$CI_COMMIT_SHA
+    inputs:
+      job_name: "ibmi:pack-samples"
+      stage: package
+      src_lib: "PACKAGER"
+      objects: "APPCFG APPMSGF CUSTPF ORDHDR CUSTLF ORDVW CUSTDSPF ORDPRTF ORDHLP TAXMOD APPBND TAXSRV ORDPGM CUSTRPT UTLCLP ORDCL ORDENT"
+      object_types: "*ALL"
+      version: "$CI_COMMIT_SHORT_SHA"
+      stmf_name: "samples-package.savf"
+      manifest_name: "samples-pack-manifest.html"
+      packager_lib: "PACKAGER"
+      artifact_dir: "artifacts-samples"
+
+  # 3. Dogfood the standalone #UNPACK component (manual deploy job or verification)
+  - component: $CI_SERVER_FQDN/$CI_PROJECT_PATH/unpack@$CI_COMMIT_SHA
+    inputs:
+      job_name: "ibmi:unpack-samples"
+      stage: deploy
+      environment: "staging"
+      inp_type: "*STMF"
+      stmf_artifact: "artifacts-samples/samples-package.savf"
+      default_lib: "PACKAGER"
+      copy_data: "*YES"
+      manifest_name: "samples-unpack-manifest.html"
+      packager_lib: "PACKAGER"
+      artifact_dir: "artifacts-samples"
+      when: "manual"
+
+# Ensure packaging waits for iRPGUnit tests to pass
+ibmi:pack:
+  needs:
+    - job: ibmi:test
+      artifacts: false
+
+ibmi:pack-samples:
+  needs:
+    - job: ibmi:test
+      artifacts: false
+
+ibmi:unpack-samples:
+  needs:
+    - job: ibmi:pack-samples
+      artifacts: true
+
+# ------------------------------------------------------------------------------
+# Stage 5: Publish Component Release to the GitLab CI/CD Catalog
+# Triggered automatically when a semantic version git tag (e.g. 1.0.0) is pushed
+# ------------------------------------------------------------------------------
+create-catalog-release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v?\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/
+  script:
+    - echo "Publishing ibm-i-packager component release ${CI_COMMIT_TAG} to the GitLab CI/CD Catalog..."
+  release:
+    name: "Release $CI_COMMIT_TAG"
+    tag_name: $CI_COMMIT_TAG
+    description: |
+      ## IBM i Packager (`#PACK` / `#UNPACK`) — GitLab CI/CD Component Release `$CI_COMMIT_TAG`
+
+      ### Included CI/CD Catalog Components
+      - `$CI_SERVER_FQDN/$CI_PROJECT_PATH/pack@$CI_COMMIT_TAG` — Stamp object versions (`USRDFNATR`) and package IBM i libraries into `*SAVF` / IFS `.savf` artifacts with HTML manifests.
+      - `$CI_SERVER_FQDN/$CI_PROJECT_PATH/unpack@$CI_COMMIT_TAG` — Deploy IBM i `.savf` packages in strict 8-tier dependency precedence order (`10` -> `80`) with authority & data preservation, JSON library/file mapping, and rollback Save File support.
+      - `$CI_SERVER_FQDN/$CI_PROJECT_PATH/ibmi-cicd@$CI_COMMIT_TAG` — Complete end-to-end IBM i TOBi (`makei`) build, `iRPGUnit` JUnit test runner, and `#PACK` pipeline component.

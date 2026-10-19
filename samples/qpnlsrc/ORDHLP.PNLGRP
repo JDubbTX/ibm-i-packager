@@ -1,0 +1,22 @@
+.* ============================================================================
+.* Sample UIM Panel Group: ORDHLP (Help Panel for ORDENT Command)
+.* Built with IBM i TOBi (makei) -> *PNLGRP - Precedence Tier 40
+.* ============================================================================
+:pnlgrp.
+:help name='ORDENT'.
+Process Customer Order (ORDENT) - Help
+:p.The Process Customer Order (ORDENT) command calculates order tax using
+service program TAXSRV, inserts a new order into SQL table ORDHDR, and
+updates customer balance in physical file CUSTPF.
+:ehelp.
+:help name='ORDENT/CUSTID'.
+Customer ID (CUSTID) - Help
+:xh3.Customer ID (CUSTID)
+:p.Specifies the 8-digit customer identifier in CUSTPF.
+:ehelp.
+:help name='ORDENT/AMOUNT'.
+Order Subtotal Amount (AMOUNT) - Help
+:xh3.Order Subtotal Amount (AMOUNT)
+:p.Specifies the pre-tax order amount in dollars and cents.
+:ehelp.
+:epnlgrp.

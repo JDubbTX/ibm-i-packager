@@ -1,0 +1,211 @@
+spec:
+  inputs:
+    job_name:
+      type: string
+      default: "ibmi:pack"
+      description: "Name of the generated GitLab CI/CD job"
+    stage:
+      type: string
+      default: "package"
+      description: "Pipeline stage for the packaging job"
+    image:
+      type: string
+      default: "alpine:3.20"
+      description: "Container image used on the GitLab Linux runner"
+    src_lib:
+      type: string
+      default: "PACKAGER"
+      description: "Source IBM i library (SRCLIB) containing compiled objects to stamp and package"
+    objects:
+      type: string
+      default: "*ALL"
+      description: "Space-separated object names or generic patterns for OBJ(...), e.g. 'ORD* CUST*'"
+    object_types:
+      type: string
+      default: "*ALL"
+      description: "Space-separated IBM i object types for OBJTYPE(...), e.g. '*PGM *SRVPGM *FILE *CMD'"
+    version:
+      type: string
+      default: "$CI_COMMIT_SHORT_SHA"
+      description: "Version string stamped into USRDFNATR of each packaged object and save file (truncated to 10 characters)"
+    out_type:
+      type: string
+      default: "*STMF"
+      options:
+        - "*STMF"
+        - "*SAVF"
+      description: "Output destination type: *STMF (IFS stream file downloaded as artifact) or *SAVF (QSYS Save File)"
+    savf:
+      type: string
+      default: "QGPL/RELEASE"
+      description: "Target qualified Save File (LIB/SAVF) when out_type is *SAVF"
+    stmf_name:
+      type: string
+      default: "package.savf"
+      description: "Filename for the packaged .savf file stored inside artifact_dir"
+    target_release:
+      type: string
+      default: "*CURRENT"
+      description: "IBM i SAVOBJ Target Release (TGTRLS), e.g. *CURRENT, *PRV, V7R4M0"
+    clear:
+      type: string
+      default: "*YES"
+      options:
+        - "*YES"
+        - "*NO"
+      description: "Clear existing Save File or overwrite existing IFS stream file (*YES or *NO)"
+    manifest_name:
+      type: string
+      default: "pack-manifest.html"
+      description: "Filename for the generated HTML package manifest stored inside artifact_dir"
+    packager_lib:
+      type: string
+      default: "PACKAGER"
+      description: "Library on the IBM i host where #PACK / PACK are installed"
+    artifact_dir:
+      type: string
+      default: "artifacts"
+      description: "Runner workspace directory where downloaded .savf and HTML manifest artifacts are stored"
+    artifact_expire_in:
+      type: string
+      default: "30 days"
+      description: "Expiration duration for uploaded GitLab job artifacts"
+---
+
+"$[[ inputs.job_name ]]":
+  stage: $[[ inputs.stage ]]
+  image: $[[ inputs.image ]]
+  before_script:
+    - apk add --no-cache openssh-client sshpass bash
+    - |
+      if [ -z "${IBMI_HOST:-}" ] || [ -z "${IBMI_USER:-}" ]; then
+        echo "ERROR: IBMI_HOST and IBMI_USER must be configured in GitLab CI/CD Variables."
+        exit 1
+      fi
+      IBMI_SSH_PORT="${IBMI_PORT:-22}"
+      mkdir -p ~/.ssh
+      chmod 700 ~/.ssh
+      cat <<EOF > ~/.ssh/config
+      Host ibmi-target
+        HostName ${IBMI_HOST}
+        User ${IBMI_USER}
+        Port ${IBMI_SSH_PORT}
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+        ConnectTimeout 15
+        ServerAliveInterval 15
+        ServerAliveCountMax 4
+      EOF
+      chmod 600 ~/.ssh/config
+
+      if [ -n "${IBMI_SSH_PRIVATE_KEY:-}" ]; then
+        printf "%s\n" "${IBMI_SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/id_ibmi
+        chmod 600 ~/.ssh/id_ibmi
+        echo "  IdentityFile ~/.ssh/id_ibmi" >> ~/.ssh/config
+        SSH_CMD="ssh ibmi-target"
+        SCP_CMD="scp -P ${IBMI_SSH_PORT} -i ~/.ssh/id_ibmi -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+      elif [ -n "${IBMI_PASSWORD:-}" ]; then
+        export SSHPASS="${IBMI_PASSWORD}"
+        SSH_CMD="sshpass -e ssh ibmi-target"
+        SCP_CMD="sshpass -e scp -P ${IBMI_SSH_PORT} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+      else
+        echo "ERROR: Either IBMI_SSH_PRIVATE_KEY or IBMI_PASSWORD must be set in GitLab CI/CD Variables."
+        exit 1
+      fi
+
+      run_ssh() {
+        local attempt
+        for attempt in 1 2 3 4 5; do
+          if $SSH_CMD "$1"; then
+            return 0
+          fi
+          echo "SSH attempt ${attempt} failed, retrying in 3s..." >&2
+          sleep 3
+        done
+        return 1
+      }
+
+      run_scp_from() {
+        local src="$1"
+        local dst="$2"
+        local attempt
+        for attempt in 1 2 3 4 5; do
+          if $SCP_CMD -r "${IBMI_USER}@${IBMI_HOST}:${src}" "$dst"; then
+            return 0
+          fi
+          echo "SCP download attempt ${attempt} failed, retrying in 3s..." >&2
+          sleep 3
+        done
+        return 1
+      }
+  script:
+    - mkdir -p "${CI_PROJECT_DIR}/$[[ inputs.artifact_dir ]]"
+    - REMOTE_WORK_DIR="/tmp/ibmi_pack_${CI_JOB_ID}"
+    - |
+      run_ssh "export PATH=/QOpenSys/pkgs/bin:\$PATH && \
+        mkdir -p '${REMOTE_WORK_DIR}' && \
+        PY_BIN=\$(for py in /QOpenSys/pkgs/bin/python3*; do \$py -c 'import ibm_db_dbi' 2>/dev/null && echo \$py && break; done) && \
+        \$PY_BIN -c \"
+      import sys
+      import ibm_db_dbi
+
+      packager_lib = '$[[ inputs.packager_lib ]]'.strip()
+      src_lib = '$[[ inputs.src_lib ]]'.strip()
+      objects = '$[[ inputs.objects ]]'.strip()
+      object_types = '$[[ inputs.object_types ]]'.strip()
+      ver = '$[[ inputs.version ]]'.strip()[:10]
+      out_type = '$[[ inputs.out_type ]]'.strip()
+      savf = '$[[ inputs.savf ]]'.strip()
+      tgtrls = '$[[ inputs.target_release ]]'.strip()
+      clear_opt = '$[[ inputs.clear ]]'.strip()
+      remote_work = '${REMOTE_WORK_DIR}'
+      stmf_path = remote_work + '/$[[ inputs.stmf_name ]]'
+      manifest_path = remote_work + '/$[[ inputs.manifest_name ]]'
+
+      conn = ibm_db_dbi.connect()
+      cur = conn.cursor()
+      try:
+          cur.execute('CALL QSYS2.QCMDEXC(?)', ('ADDLIBLE LIB(' + packager_lib + ')',))
+      except Exception:
+          pass
+
+      if out_type == '*SAVF':
+          dest_parm = 'OUTTYPE(*SAVF) SAVF(' + savf + ')'
+      else:
+          dest_parm = 'OUTTYPE(*STMF) STMF(\\'' + stmf_path + '\\')'
+
+      cmd = (
+          packager_lib + '/#PACK SRCLIB(' + src_lib + ') '
+          'OBJ(' + objects + ') '
+          'OBJTYPE(' + object_types + ') '
+          'VERSION(\\'' + ver + '\\') '
+          + dest_parm + ' '
+          'TGTRLS(' + tgtrls + ') '
+          'CLEAR(' + clear_opt + ') '
+          'MANIFEST(\\'' + manifest_path + '\\')'
+      )
+      print('>>> ' + cmd)
+      sys.stdout.flush()
+      try:
+          cur.execute('CALL QSYS2.QCMDEXC(?)', (cmd,))
+      except Exception as exc:
+          print('ERROR: ' + str(exc))
+          cur.execute(
+              \\\"SELECT MESSAGE_ID, MESSAGE_TYPE, MESSAGE_TEXT, MESSAGE_SECOND_LEVEL_TEXT \\\"
+              \\\"FROM TABLE(QSYS2.JOBLOG_INFO('*')) \\\"
+              \\\"WHERE MESSAGE_TYPE IN ('DIAGNOSTIC', 'ESCAPE')\\\"
+          )
+          for row in cur.fetchall()[-30:]:
+              print('  [JOBLOG]', row[0], row[1], row[2], '|', str(row[3])[:140])
+          sys.exit(1)
+      \""
+    - echo "=== Downloading package artifacts from ${IBMI_HOST}:${REMOTE_WORK_DIR} ==="
+    - run_scp_from "${REMOTE_WORK_DIR}/." "${CI_PROJECT_DIR}/$[[ inputs.artifact_dir ]]/"
+    - run_ssh "rm -rf '${REMOTE_WORK_DIR}'" || true
+    - ls -lh "${CI_PROJECT_DIR}/$[[ inputs.artifact_dir ]]/"
+  artifacts:
+    name: "ibmi-package-$[[ inputs.src_lib ]]-$[[ inputs.version ]]"
+    paths:
+      - $[[ inputs.artifact_dir ]]/
+    expire_in: $[[ inputs.artifact_expire_in ]]
+

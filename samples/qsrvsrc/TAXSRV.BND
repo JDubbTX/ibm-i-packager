@@ -1,0 +1,7 @@
+/* ========================================================================== */
+/* Sample Binder Language Source: TAXSRV.BND                                  */
+/* Built with IBM i TOBi (makei) -> TAXSRV (*SRVPGM) - Precedence Tier 60     */
+/* ========================================================================== */
+             STRPGMEXP  PGMLVL(*CURRENT) SIGNATURE('TAXSRV_V1.0     ')
+               EXPORT     SYMBOL('CalcOrderTax')
+             ENDPGMEXP

@@ -1,0 +1,8 @@
+/* ========================================================================== */
+/* Sample Data Area Source (APPCFG.DTAARA) - Built by IBM i TOBi (makei)      */
+/* Target Object: APPCFG (*DTAARA) - Precedence Tier 20                       */
+/* ========================================================================== */
+!DLTDTAARA DTAARA(&O/&N)
+CRTDTAARA  DTAARA(&O/&N) TYPE(*CHAR) LEN(128) +
+             VALUE('ENV=PROD;TAXRATE=0.0750;CURRENCY=USD;MAXORD=999999.99;') +
+             TEXT('Sample Application Configuration Data Area')

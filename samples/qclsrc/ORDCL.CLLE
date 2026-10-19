@@ -1,0 +1,20 @@
+/* ========================================================================== */
+/* Sample ILE CL Program: ORDCL.CLLE                                          */
+/* Built with IBM i TOBi (makei) -> *PGM (CLLE) - Precedence Tier 70          */
+/* Command Processing Program for ORDENT.CMD                                  */
+/* ========================================================================== */
+             PGM        PARM(&ORDID &CUSTID &AMOUNT)
+
+             DCL        VAR(&ORDID)   TYPE(*DEC) LEN(10 0)
+             DCL        VAR(&CUSTID)  TYPE(*DEC) LEN(8 0)
+             DCL        VAR(&AMOUNT)  TYPE(*DEC) LEN(11 2)
+             DCL        VAR(&CFGVAL)  TYPE(*CHAR) LEN(128)
+
+             /* Read application configuration Data Area (Tier 20) */
+             RTVDTAARA  DTAARA(APPCFG (1 128)) RTNVAR(&CFGVAL)
+             MONMSG     MSGID(CPF1015)
+
+             /* Call SQLRPGLE order entry program (Tier 70) */
+             CALL       PGM(ORDPGM) PARM(&ORDID &CUSTID &AMOUNT)
+
+             ENDPGM

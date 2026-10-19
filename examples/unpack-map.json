@@ -1,0 +1,71 @@
+{
+  "defaultLibrary": "PRODPGM",
+  "defaultPreserveData": true,
+  "libraryMap": [
+    {
+      "objectName": "*ALL",
+      "objectType": "*FILE",
+      "objectAttribute": "PF",
+      "targetLibrary": "PRODDTA",
+      "preserveData": true
+    },
+    {
+      "objectName": "*ALL",
+      "objectType": "*FILE",
+      "objectAttribute": "LF",
+      "targetLibrary": "PRODDTA"
+    },
+    {
+      "objectName": "*ALL",
+      "objectType": "*DTAARA",
+      "objectAttribute": "*ALL",
+      "targetLibrary": "PRODDTA"
+    },
+    {
+      "objectName": "*ALL",
+      "objectType": "*FILE",
+      "objectAttribute": "DSPF",
+      "targetLibrary": "PRODPGM"
+    },
+    {
+      "objectName": "*ALL",
+      "objectType": "*FILE",
+      "objectAttribute": "PRTF",
+      "targetLibrary": "PRODPGM"
+    },
+    {
+      "objectName": "*ALL",
+      "objectType": "*PGM",
+      "objectAttribute": "*ALL",
+      "targetLibrary": "PRODPGM"
+    },
+    {
+      "objectName": "*ALL",
+      "objectType": "*SRVPGM",
+      "objectAttribute": "*ALL",
+      "targetLibrary": "PRODPGM"
+    }
+  ],
+  "fileOverrides": [
+    {
+      "fileName": "SYSCFG",
+      "targetLibrary": "PRODDTA",
+      "preserveData": false
+    },
+    {
+      "fileName": "ERRCODES",
+      "targetLibrary": "PRODDTA",
+      "preserveData": false
+    },
+    {
+      "fileName": "TMP*",
+      "targetLibrary": "PRODWRK",
+      "preserveData": false
+    },
+    {
+      "fileName": "AUDLOGPF",
+      "targetLibrary": "PRODAUD",
+      "preserveData": true
+    }
+  ]
+}

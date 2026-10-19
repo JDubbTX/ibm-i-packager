@@ -1,0 +1,14 @@
+{
+  "description": "Sample IBM i Traditional & SQL Objects built with TOBi (makei) for #PACK/#UNPACK Testing",
+  "version": "1.0.0",
+  "objlib": "&samplelib",
+  "curlib": "&samplelib",
+  "includePath": [
+    "qrpglesrc"
+  ],
+  "preUsrlibl": [],
+  "postUsrlibl": [],
+  "setIBMiEnvCmd": [],
+  "buildCommand": "makei build",
+  "compileCommand": "makei compile -f {filename}"
+}

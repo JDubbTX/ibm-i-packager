@@ -1,0 +1,385 @@
+TIMESTAMP  0 20261019120315
+PROCESSOR  0 999 1
+FILEID     0 999 000000 023 QTEMP/QSQLPRE(TPKGTEST) 20261019120315 0
+FILEID     0 001 000000 073 /home/jweirich/builds/ibm-i-packager/test/qrpglesrc/pkgtest.test.sqlrpgle 20261018230424 0
+FILEID     0 002 000030 026 RPGUNIT/QINCLUDE(TESTCASE) 20260125171217 0
+EXPANSION  0 000 000000 000000 999 000031 000031
+EXPANSION  0 002 000044 000044 999 000000 000000
+EXPANSION  0 002 000132 000132 999 000000 000000
+EXPANSION  0 002 000159 000159 999 000000 000000
+EXPANSION  0 002 000769 000769 999 000000 000000
+FILEID     0 003 000771 027 RPGUNIT/QINCLUDE(TEMPLATES) 20260125171216 0
+EXPANSION  0 000 000000 000000 999 000799 000799
+EXPANSION  0 003 000003 000003 999 000000 000000
+FILEEND    0 003 000097
+FILEEND    0 002 000774
+FILEID     0 004 000031 068 /home/jweirich/builds/ibm-i-packager/src/qrpglesrc/PKGTYPES.rpgleinc 20261018212320 0
+EXPANSION  0 000 000000 000000 999 000900 000900
+EXPANSION  0 004 000009 000009 999 000000 000000
+FILEEND    0 004 000193
+FILEEND    0 001 000703
+FILEEND    0 999 001764
+PROCESSOR  0 999 1
+FILEID     0 999 000000 025 QTEMP/QSQLTEMP1(TPKGTEST) 20261019120316 0
+FILEID     0 001 000000 023 QTEMP/QSQLPRE(TPKGTEST) 20261019120316 0
+ERROR      0 001 1 001095 001095 000 001095 000 SQL5066 I 00 057 Precompile option NAMING changed by SET OPTION statement.
+ERROR      0 001 1 001095 001095 000 001095 000 SQL5066 I 00 057 Precompile option COMMIT changed by SET OPTION statement.
+ERROR      0 001 1 001095 001095 000 001095 000 SQL5066 I 00 060 Precompile option CLOSQLCSR changed by SET OPTION statement.
+ERROR      0 001 1 001168 001168 017 001168 017 SQL1103 W 10 074 Position 17 Column definitions for table TSTCUSTPF in PKGTSTSRC not found.
+ERROR      0 001 1 001179 001179 017 001179 017 SQL1103 W 10 074 Position 17 Column definitions for table TSTSYSCFG in PKGTSTSRC not found.
+ERROR      0 001 1 001186 001186 014 001186 014 SQL1103 W 10 074 Position 14 Column definitions for table TSTCUSTPF in PKGTSTSRC not found.
+ERROR      0 001 1 001186 001186 014 001186 014 SQL1103 W 10 074 Position 14 Column definitions for table TSTCUSTPF in PKGTSTSRC not found.
+ERROR      0 001 1 001552 001552 017 001552 017 SQL1103 W 10 074 Position 17 Column definitions for table TSTCUSTPF in PKGTSTDTA not found.
+ERROR      0 001 1 001554 001554 005 001554 005 SQL0088 I 00 042 Position 5 UPDATE applies to entire table.
+ERROR      0 001 1 001554 001554 012 001554 012 SQL1103 W 10 074 Position 12 Column definitions for table TSTSYSCFG in PKGTSTDTA not found.
+ERROR      0 001 1 001583 001583 012 001583 012 SQL1103 W 10 074 Position 12 Column definitions for table TSTCUSTPF in PKGTSTDTA not found.
+ERROR      0 001 1 001592 001592 012 001592 012 SQL1103 W 10 074 Position 12 Column definitions for table TSTSYSCFG in PKGTSTDTA not found.
+ERROR      0 001 1 001742 001742 019 001742 019 SQL1103 W 10 067 Position 19 Column definitions for table SRCMBR in QTEMP not found.
+EXPANSION  0 001 000000 000000 999 001095 001159
+EXPANSION  0 001 001121 001121 999 001179 001187
+EXPANSION  0 001 001121 001121 999 001196 001203
+EXPANSION  0 001 001166 001166 999 001249 001252
+EXPANSION  0 001 001170 001170 999 001257 001260
+EXPANSION  0 001 001177 001177 999 001268 001271
+EXPANSION  0 001 001180 001180 999 001275 001278
+EXPANSION  0 001 001186 001186 999 001285 001288
+EXPANSION  0 001 001377 001377 999 001459 001467
+EXPANSION  0 001 001377 001377 999 001489 001496
+EXPANSION  0 001 001427 001427 999 001516 001524
+EXPANSION  0 001 001427 001427 999 001556 001563
+EXPANSION  0 001 001481 001481 999 001583 001591
+EXPANSION  0 001 001481 001481 999 001627 001634
+EXPANSION  0 001 001537 001537 999 001659 001694
+EXPANSION  0 001 001537 001537 999 001727 001735
+EXPANSION  0 001 001552 001552 999 001751 001754
+EXPANSION  0 001 001554 001554 999 001757 001760
+EXPANSION  0 001 001576 001576 999 001783 001790
+EXPANSION  0 001 001584 001584 999 001799 001806
+EXPANSION  0 001 001594 001594 999 001817 001824
+EXPANSION  0 001 001619 001619 999 001842 001853
+EXPANSION  0 001 001619 001619 999 001862 001872
+EXPANSION  0 001 001729 001729 999 001976 001989
+EXPANSION  0 001 001729 001729 999 001997 002001
+EXPANSION  0 001 001743 001743 999 002016 002022
+FILEEND    0 001 001764
+FILEEND    0 999 002043
+PROCESSOR  0 000 1
+FILEID     0 001 000000 047 /QSYS.LIB/QTEMP.LIB/QSQLTEMP1.FILE/TPKGTEST.MBR 20261019120316 0
+ERROR      0 001 1 001983 001983 009 001983 017 RNF7031 I 00 050 The name or indicator SQL_00058 is not referenced.
+ERROR      0 001 1 001984 001984 009 001984 017 RNF7031 I 00 050 The name or indicator SQL_00059 is not referenced.
+ERROR      0 001 1 001985 001985 009 001985 017 RNF7031 I 00 050 The name or indicator SQL_00060 is not referenced.
+ERROR      0 001 1 001986 001986 009 001986 017 RNF7031 I 00 050 The name or indicator SQL_00061 is not referenced.
+ERROR      0 001 1 001845 001845 009 001845 017 RNF7031 I 00 050 The name or indicator SQL_00049 is not referenced.
+ERROR      0 001 1 001846 001846 009 001846 017 RNF7031 I 00 050 The name or indicator SQL_00050 is not referenced.
+ERROR      0 001 1 001848 001848 009 001848 017 RNF7031 I 00 050 The name or indicator SQL_00052 is not referenced.
+ERROR      0 001 1 001689 001689 009 001689 017 RNF7031 I 00 050 The name or indicator SQL_00043 is not referenced.
+ERROR      0 001 1 001690 001690 009 001690 017 RNF7031 I 00 050 The name or indicator SQL_00044 is not referenced.
+ERROR      0 001 1 001692 001692 009 001692 017 RNF7031 I 00 050 The name or indicator SQL_00046 is not referenced.
+ERROR      0 001 1 001680 001680 009 001680 017 RNF7031 I 00 050 The name or indicator SQL_00037 is not referenced.
+ERROR      0 001 1 001681 001681 009 001681 017 RNF7031 I 00 050 The name or indicator SQL_00038 is not referenced.
+ERROR      0 001 1 001683 001683 009 001683 017 RNF7031 I 00 050 The name or indicator SQL_00040 is not referenced.
+ERROR      0 001 1 001671 001671 009 001671 017 RNF7031 I 00 050 The name or indicator SQL_00031 is not referenced.
+ERROR      0 001 1 001672 001672 009 001672 017 RNF7031 I 00 050 The name or indicator SQL_00032 is not referenced.
+ERROR      0 001 1 001674 001674 009 001674 017 RNF7031 I 00 050 The name or indicator SQL_00034 is not referenced.
+ERROR      0 001 1 001662 001662 009 001662 017 RNF7031 I 00 050 The name or indicator SQL_00025 is not referenced.
+ERROR      0 001 1 001663 001663 009 001663 017 RNF7031 I 00 050 The name or indicator SQL_00026 is not referenced.
+ERROR      0 001 1 001665 001665 009 001665 017 RNF7031 I 00 050 The name or indicator SQL_00028 is not referenced.
+ERROR      0 001 1 001586 001586 009 001586 017 RNF7031 I 00 050 The name or indicator SQL_00019 is not referenced.
+ERROR      0 001 1 001587 001587 009 001587 017 RNF7031 I 00 050 The name or indicator SQL_00020 is not referenced.
+ERROR      0 001 1 001589 001589 009 001589 017 RNF7031 I 00 050 The name or indicator SQL_00022 is not referenced.
+ERROR      0 001 1 001519 001519 009 001519 017 RNF7031 I 00 050 The name or indicator SQL_00013 is not referenced.
+ERROR      0 001 1 001520 001520 009 001520 017 RNF7031 I 00 050 The name or indicator SQL_00014 is not referenced.
+ERROR      0 001 1 001522 001522 009 001522 017 RNF7031 I 00 050 The name or indicator SQL_00016 is not referenced.
+ERROR      0 001 1 001462 001462 009 001462 017 RNF7031 I 00 050 The name or indicator SQL_00007 is not referenced.
+ERROR      0 001 1 001463 001463 009 001463 017 RNF7031 I 00 050 The name or indicator SQL_00008 is not referenced.
+ERROR      0 001 1 001465 001465 009 001465 017 RNF7031 I 00 050 The name or indicator SQL_00010 is not referenced.
+ERROR      0 001 1 001182 001182 009 001182 017 RNF7031 I 00 050 The name or indicator SQL_00001 is not referenced.
+ERROR      0 001 1 001183 001183 009 001183 017 RNF7031 I 00 050 The name or indicator SQL_00002 is not referenced.
+ERROR      0 001 1 001185 001185 009 001185 017 RNF7031 I 00 050 The name or indicator SQL_00004 is not referenced.
+ERROR      0 001 1 001895 001895 010 001895 015 RNF7031 I 00 051 The name or indicator BYTESPR... is not referenced.
+ERROR      0 001 1 001895 001895 010 001895 015 RNF7031 I 00 051 The name or indicator BYTESAV... is not referenced.
+ERROR      0 001 1 001895 001895 010 001895 015 RNF7031 I 00 051 The name or indicator EXCEPTI... is not referenced.
+ERROR      0 001 1 001895 001895 010 001895 015 RNF7031 I 00 049 The name or indicator RESERVED is not referenced.
+ERROR      0 001 1 001895 001895 010 001895 015 RNF7031 I 00 051 The name or indicator EXCEPTI... is not referenced.
+ERROR      0 001 1 001921 001921 010 001921 015 RNF7031 I 00 051 The name or indicator BYTESPR... is not referenced.
+ERROR      0 001 1 001921 001921 010 001921 015 RNF7031 I 00 051 The name or indicator EXCEPTI... is not referenced.
+ERROR      0 001 1 001921 001921 010 001921 015 RNF7031 I 00 049 The name or indicator RESERVED is not referenced.
+ERROR      0 001 1 001921 001921 010 001921 015 RNF7031 I 00 051 The name or indicator EXCEPTI... is not referenced.
+ERROR      0 001 1 000929 000929 003 000929 015 RNF7031 I 00 051 The name or indicator BYTESPR... is not referenced.
+ERROR      0 001 1 000930 000930 003 000930 016 RNF7031 I 00 051 The name or indicator BYTESAV... is not referenced.
+ERROR      0 001 1 000931 000931 003 000931 013 RNF7031 I 00 051 The name or indicator EXCEPTI... is not referenced.
+ERROR      0 001 1 000932 000932 003 000932 010 RNF7031 I 00 049 The name or indicator RESERVED is not referenced.
+ERROR      0 001 1 000933 000933 003 000933 015 RNF7031 I 00 051 The name or indicator EXCEPTI... is not referenced.
+ERROR      0 001 1 000529 000529 008 000529 018 RNF7031 I 00 051 The name or indicator ASSERTE... is not referenced.
+ERROR      0 001 1 000741 000741 008 000741 022 RNF7031 I 00 051 The name or indicator ASSERTE... is not referenced.
+ERROR      0 001 1 000844 000844 003 000844 005 RNF7031 I 00 044 The name or indicator MSG is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 045 The name or indicator NUME is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 046 The name or indicator LEVEL is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 043 The name or indicator NM is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 044 The name or indicator LIB is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 045 The name or indicator QPGM is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 043 The name or indicator NM is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 044 The name or indicator LIB is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 045 The name or indicator QMOD is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 047 The name or indicator PROCNM is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 047 The name or indicator SPECNB is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 046 The name or indicator QSTMT is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 046 The name or indicator ENTRY is not referenced.
+ERROR      0 001 1 000845 000845 003 000845 009 RNF7031 I 00 048 The name or indicator CALLSTK is not referenced.
+ERROR      0 001 1 000850 000850 003 000850 005 RNF7031 I 00 044 The name or indicator MSG is not referenced.
+ERROR      0 001 1 000851 000851 003 000851 013 RNF7031 I 00 046 The name or indicator VALUE is not referenced.
+ERROR      0 001 1 000851 000851 003 000851 013 RNF7031 I 00 045 The name or indicator TYPE is not referenced.
+ERROR      0 001 1 000851 000851 003 000851 013 RNF7031 I 00 051 The name or indicator ISTRUNC... is not referenced.
+ERROR      0 001 1 000851 000851 003 000851 013 RNF7031 I 00 047 The name or indicator LENGTH is not referenced.
+ERROR      0 001 1 000851 000851 003 000851 013 RNF7031 I 00 051 The name or indicator ORIGINA... is not referenced.
+ERROR      0 001 1 000851 000851 003 000851 013 RNF7031 I 00 051 The name or indicator LOGEXPE... is not referenced.
+ERROR      0 001 1 000852 000852 003 000852 011 RNF7031 I 00 046 The name or indicator VALUE is not referenced.
+ERROR      0 001 1 000852 000852 003 000852 011 RNF7031 I 00 045 The name or indicator TYPE is not referenced.
+ERROR      0 001 1 000852 000852 003 000852 011 RNF7031 I 00 051 The name or indicator ISTRUNC... is not referenced.
+ERROR      0 001 1 000852 000852 003 000852 011 RNF7031 I 00 047 The name or indicator LENGTH is not referenced.
+ERROR      0 001 1 000852 000852 003 000852 011 RNF7031 I 00 051 The name or indicator ORIGINA... is not referenced.
+ERROR      0 001 1 000852 000852 003 000852 011 RNF7031 I 00 050 The name or indicator LOGACTUAL is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 045 The name or indicator NUME is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 046 The name or indicator LEVEL is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 043 The name or indicator NM is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 044 The name or indicator LIB is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 045 The name or indicator QPGM is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 043 The name or indicator NM is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 044 The name or indicator LIB is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 045 The name or indicator QMOD is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 047 The name or indicator PROCNM is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 047 The name or indicator SPECNB is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 046 The name or indicator QSTMT is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 046 The name or indicator ENTRY is not referenced.
+ERROR      0 001 1 000853 000853 003 000853 009 RNF7031 I 00 048 The name or indicator CALLSTK is not referenced.
+ERROR      0 001 1 000233 000233 008 000233 027 RNF7031 I 00 051 The name or indicator ASSERTJ... is not referenced.
+ERROR      0 001 1 000256 000256 008 000256 033 RNF7031 I 00 051 The name or indicator ASSERTM... is not referenced.
+ERROR      0 001 1 000768 000768 008 000768 017 RNF7031 I 00 051 The name or indicator ASSERTTHAT is not referenced.
+ERROR      0 001 1 000818 000818 003 000818 006 RNF7031 I 00 045 The name or indicator NUME is not referenced.
+ERROR      0 001 1 000819 000819 003 000819 007 RNF7031 I 00 046 The name or indicator LEVEL is not referenced.
+ERROR      0 001 1 000819 000819 003 000819 007 RNF7031 I 00 043 The name or indicator NM is not referenced.
+ERROR      0 001 1 000819 000819 003 000819 007 RNF7031 I 00 044 The name or indicator LIB is not referenced.
+ERROR      0 001 1 000819 000819 003 000819 007 RNF7031 I 00 045 The name or indicator QPGM is not referenced.
+ERROR      0 001 1 000819 000819 003 000819 007 RNF7031 I 00 043 The name or indicator NM is not referenced.
+ERROR      0 001 1 000819 000819 003 000819 007 RNF7031 I 00 044 The name or indicator LIB is not referenced.
+ERROR      0 001 1 000819 000819 003 000819 007 RNF7031 I 00 045 The name or indicator QMOD is not referenced.
+ERROR      0 001 1 000819 000819 003 000819 007 RNF7031 I 00 047 The name or indicator PROCNM is not referenced.
+ERROR      0 001 1 000819 000819 003 000819 007 RNF7031 I 00 047 The name or indicator SPECNB is not referenced.
+ERROR      0 001 1 000819 000819 003 000819 007 RNF7031 I 00 046 The name or indicator QSTMT is not referenced.
+ERROR      0 001 1 000819 000819 003 000819 007 RNF7031 I 00 046 The name or indicator ENTRY is not referenced.
+ERROR      0 001 1 000824 000824 003 000824 007 RNF7031 I 00 046 The name or indicator LEVEL is not referenced.
+ERROR      0 001 1 000825 000825 003 000825 007 RNF7031 I 00 043 The name or indicator NM is not referenced.
+ERROR      0 001 1 000825 000825 003 000825 007 RNF7031 I 00 044 The name or indicator LIB is not referenced.
+ERROR      0 001 1 000825 000825 003 000825 007 RNF7031 I 00 045 The name or indicator QPGM is not referenced.
+ERROR      0 001 1 000825 000825 003 000825 007 RNF7031 I 00 043 The name or indicator NM is not referenced.
+ERROR      0 001 1 000825 000825 003 000825 007 RNF7031 I 00 044 The name or indicator LIB is not referenced.
+ERROR      0 001 1 000825 000825 003 000825 007 RNF7031 I 00 045 The name or indicator QMOD is not referenced.
+ERROR      0 001 1 000825 000825 003 000825 007 RNF7031 I 00 047 The name or indicator PROCNM is not referenced.
+ERROR      0 001 1 000825 000825 003 000825 007 RNF7031 I 00 047 The name or indicator SPECNB is not referenced.
+ERROR      0 001 1 000825 000825 003 000825 007 RNF7031 I 00 046 The name or indicator QSTMT is not referenced.
+ERROR      0 001 1 000988 000988 003 000988 009 RNF7031 I 00 048 The name or indicator NUMRCDS is not referenced.
+ERROR      0 001 1 000989 000989 003 000989 005 RNF7031 I 00 044 The name or indicator KEY is not referenced.
+ERROR      0 001 1 000990 000990 003 000990 009 RNF7031 I 00 048 The name or indicator DATALEN is not referenced.
+ERROR      0 001 1 000991 000991 003 000991 011 RNF7031 I 00 050 The name or indicator USRDFNATR is not referenced.
+ERROR      0 001 1 000496 000496 008 000496 025 RNF7031 I 00 051 The name or indicator CLEARAS... is not referenced.
+ERROR      0 001 1 000390 000390 008 000390 025 RNF7031 I 00 051 The name or indicator CLEARST... is not referenced.
+ERROR      0 001 1 000460 000460 008 000460 023 RNF7031 I 00 051 The name or indicator CLRASSE... is not referenced.
+ERROR      0 001 1 000294 000294 008 000294 013 RNF7031 I 00 047 The name or indicator CLRPFM is not referenced.
+ERROR      0 001 1 000358 000358 008 000358 027 RNF7031 I 00 051 The name or indicator DISPLAY... is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 048 The name or indicator OBJNAME is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 049 The name or indicator SAVEDLIB is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 051 The name or indicator EXTOBJATTR is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 051 The name or indicator SAVEDAT... is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 048 The name or indicator OBJSIZE is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 051 The name or indicator OBJSIZE... is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 044 The name or indicator ASP is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 050 The name or indicator DATASAVED is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 049 The name or indicator OBJOWNER is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 048 The name or indicator DLONAME is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 047 The name or indicator FOLDER is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 049 The name or indicator TEXTDESC is not referenced.
+ERROR      0 001 1 001926 001926 010 001926 014 RNF7031 I 00 051 The name or indicator ASPDEVNAME is not referenced.
+ERROR      0 001 1 000186 000186 008 000186 011 RNF7031 I 00 045 The name or indicator FAIL is not referenced.
+ERROR      0 001 1 000969 000969 003 000969 010 RNF7031 I 00 049 The name or indicator FILENAME is not referenced.
+ERROR      0 001 1 000970 000970 003 000970 008 RNF7031 I 00 047 The name or indicator TGTLIB is not referenced.
+ERROR      0 001 1 000971 000971 003 000971 014 RNF7031 I 00 051 The name or indicator PRESERV... is not referenced.
+ERROR      0 001 1 000968 000968 008 000968 025 RNF7031 I 00 051 The name or indicator FILEDAT... is not referenced.
+ERROR      0 001 1 000486 000486 008 000486 022 RNF7031 I 00 051 The name or indicator GETASSE... is not referenced.
+ERROR      0 001 1 000470 000470 008 000470 023 RNF7031 I 00 051 The name or indicator GETASSE... is not referenced.
+ERROR      0 001 1 000478 000478 008 000478 027 RNF7031 I 00 051 The name or indicator GETASSE... is not referenced.
+ERROR      0 001 1 000282 000282 008 000282 023 RNF7031 I 00 051 The name or indicator GETFULL... is not referenced.
+ERROR      0 001 1 000407 000407 008 000407 020 RNF7031 I 00 051 The name or indicator GETMEMB... is not referenced.
+ERROR      0 001 1 000215 000215 008 000215 026 RNF7031 I 00 051 The name or indicator GETMONI... is not referenced.
+ERROR      0 001 1 000425 000425 008 000425 018 RNF7031 I 00 051 The name or indicator GETSTMF... is not referenced.
+ERROR      0 001 1 000509 000509 008 000509 017 RNF7031 I 00 051 The name or indicator GETVERSION is not referenced.
+ERROR      0 001 1 000960 000960 003 000960 009 RNF7031 I 00 048 The name or indicator OBJNAME is not referenced.
+ERROR      0 001 1 000961 000961 003 000961 009 RNF7031 I 00 048 The name or indicator OBJTYPE is not referenced.
+ERROR      0 001 1 000962 000962 003 000962 009 RNF7031 I 00 048 The name or indicator OBJATTR is not referenced.
+ERROR      0 001 1 000963 000963 003 000963 008 RNF7031 I 00 047 The name or indicator TGTLIB is not referenced.
+ERROR      0 001 1 000964 000964 003 000964 014 RNF7031 I 00 051 The name or indicator PRESERV... is not referenced.
+ERROR      0 001 1 000959 000959 008 000959 020 RNF7031 I 00 051 The name or indicator LIBMAPE... is not referenced.
+ERROR      0 001 1 000869 000869 004 000869 007 RNF7031 I 00 045 The name or indicator TYPE is not referenced.
+ERROR      0 001 1 000870 000870 004 000870 014 RNF7031 I 00 051 The name or indicator ISTRUNC... is not referenced.
+ERROR      0 001 1 000871 000871 004 000871 009 RNF7031 I 00 047 The name or indicator LENGTH is not referenced.
+ERROR      0 001 1 000872 000872 004 000872 017 RNF7031 I 00 051 The name or indicator ORIGINA... is not referenced.
+ERROR      0 001 1 000788 000788 008 000788 016 RNF7031 I 00 050 The name or indicator MATCHER_T is not referenced.
+ERROR      0 001 1 000858 000858 003 000858 004 RNF7031 I 00 043 The name or indicator ID is not referenced.
+ERROR      0 001 1 000859 000859 003 000859 005 RNF7031 I 00 044 The name or indicator TXT is not referenced.
+ERROR      0 001 1 000860 000860 003 000860 005 RNF7031 I 00 044 The name or indicator PGM is not referenced.
+ERROR      0 001 1 000861 000861 003 000861 005 RNF7031 I 00 044 The name or indicator MOD is not referenced.
+ERROR      0 001 1 000862 000862 003 000862 006 RNF7031 I 00 045 The name or indicator PROC is not referenced.
+ERROR      0 001 1 000863 000863 003 000863 008 RNF7031 I 00 047 The name or indicator SPECNB is not referenced.
+ERROR      0 001 1 000128 000128 008 000128 013 RNF7031 I 00 047 The name or indicator NEQUAL is not referenced.
+ERROR      0 001 1 000838 000838 003 000838 004 RNF7031 I 00 043 The name or indicator NM is not referenced.
+ERROR      0 001 1 000839 000839 003 000839 005 RNF7031 I 00 044 The name or indicator LIB is not referenced.
+ERROR      0 001 1 000894 000894 007 000894 014 RNF7031 I 00 049 The name or indicator OLDMSG_T is not referenced.
+ERROR      0 001 1 000949 000949 003 000949 009 RNF7031 I 00 048 The name or indicator OBJNAME is not referenced.
+ERROR      0 001 1 000950 000950 003 000950 008 RNF7031 I 00 047 The name or indicator OBJLIB is not referenced.
+ERROR      0 001 1 000951 000951 003 000951 009 RNF7031 I 00 048 The name or indicator OBJTYPE is not referenced.
+ERROR      0 001 1 000948 000948 008 000948 020 RNF7031 I 00 051 The name or indicator PACKOBJ... is not referenced.
+ERROR      0 001 1 001082 001082 008 001082 015 RNF7031 I 00 049 The name or indicator QMHSNDPM is not referenced.
+ERROR      0 001 1 000830 000830 003 000830 006 RNF7031 I 00 043 The name or indicator NM is not referenced.
+ERROR      0 001 1 000830 000830 003 000830 006 RNF7031 I 00 044 The name or indicator LIB is not referenced.
+ERROR      0 001 1 000830 000830 003 000830 006 RNF7031 I 00 045 The name or indicator QPGM is not referenced.
+ERROR      0 001 1 000831 000831 003 000831 006 RNF7031 I 00 043 The name or indicator NM is not referenced.
+ERROR      0 001 1 000831 000831 003 000831 006 RNF7031 I 00 044 The name or indicator LIB is not referenced.
+ERROR      0 001 1 000831 000831 003 000831 006 RNF7031 I 00 045 The name or indicator QMOD is not referenced.
+ERROR      0 001 1 000832 000832 003 000832 008 RNF7031 I 00 047 The name or indicator PROCNM is not referenced.
+ERROR      0 001 1 000833 000833 003 000833 008 RNF7031 I 00 047 The name or indicator SPECNB is not referenced.
+ERROR      0 001 1 000940 000940 003 000940 006 RNF7031 I 00 045 The name or indicator NAME is not referenced.
+ERROR      0 001 1 000941 000941 003 000941 005 RNF7031 I 00 044 The name or indicator LIB is not referenced.
+ERROR      0 001 1 000310 000310 008 000310 016 RNF7031 I 00 050 The name or indicator RCLACTGRP is not referenced.
+ERROR      0 001 1 000378 000378 008 000378 027 RNF7031 I 00 051 The name or indicator RESTORE... is not referenced.
+ERROR      0 001 1 000325 000325 008 000325 013 RNF7031 I 00 047 The name or indicator RUNCMD is not referenced.
+ERROR      0 001 1 001055 001055 003 001055 009 RNF7031 I 00 048 The name or indicator OBJNAME is not referenced.
+ERROR      0 001 1 001056 001056 003 001056 010 RNF7031 I 00 049 The name or indicator SAVEDLIB is not referenced.
+ERROR      0 001 1 001057 001057 003 001057 009 RNF7031 I 00 048 The name or indicator OBJTYPE is not referenced.
+ERROR      0 001 1 001058 001058 003 001058 012 RNF7031 I 00 051 The name or indicator EXTOBJATTR is not referenced.
+ERROR      0 001 1 001059 001059 003 001059 014 RNF7031 I 00 051 The name or indicator SAVEDAT... is not referenced.
+ERROR      0 001 1 001060 001060 003 001060 009 RNF7031 I 00 048 The name or indicator OBJSIZE is not referenced.
+ERROR      0 001 1 001061 001061 003 001061 013 RNF7031 I 00 051 The name or indicator OBJSIZE... is not referenced.
+ERROR      0 001 1 001062 001062 003 001062 005 RNF7031 I 00 044 The name or indicator ASP is not referenced.
+ERROR      0 001 1 001063 001063 003 001063 011 RNF7031 I 00 050 The name or indicator DATASAVED is not referenced.
+ERROR      0 001 1 001064 001064 003 001064 010 RNF7031 I 00 049 The name or indicator OBJOWNER is not referenced.
+ERROR      0 001 1 001065 001065 003 001065 009 RNF7031 I 00 048 The name or indicator DLONAME is not referenced.
+ERROR      0 001 1 001066 001066 003 001066 008 RNF7031 I 00 047 The name or indicator FOLDER is not referenced.
+ERROR      0 001 1 001067 001067 003 001067 010 RNF7031 I 00 049 The name or indicator TEXTDESC is not referenced.
+ERROR      0 001 1 001068 001068 003 001068 012 RNF7031 I 00 051 The name or indicator ASPDEVNAME is not referenced.
+ERROR      0 001 1 000443 000443 008 000443 023 RNF7031 I 00 051 The name or indicator SETLOWM... is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 049 The name or indicator USERAREA is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 051 The name or indicator HEADERSIZE is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 051 The name or indicator FORMATL... is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 051 The name or indicator FORMATNAME is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 048 The name or indicator APIUSED is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 049 The name or indicator DATETIME is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 051 The name or indicator INFOSTATUS is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 050 The name or indicator SPACESIZE is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 051 The name or indicator INPUTOF... is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 050 The name or indicator INPUTSIZE is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 051 The name or indicator HEADERO... is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 051 The name or indicator HEADERS... is not referenced.
+ERROR      0 001 1 001924 001924 010 001924 015 RNF7031 I 00 049 The name or indicator LISTSIZE is not referenced.
+ERROR      0 001 1 001159 001159 014 001159 019 RNF7031 I 00 047 The name or indicator SQFAPP is not referenced.
+ERROR      0 001 1 001157 001157 014 001157 019 RNF7031 I 00 047 The name or indicator SQFCRT is not referenced.
+ERROR      0 001 1 001158 001158 014 001158 019 RNF7031 I 00 047 The name or indicator SQFOVR is not referenced.
+ERROR      0 001 1 001156 001156 014 001156 018 RNF7031 I 00 046 The name or indicator SQFRD is not referenced.
+ERROR      0 001 1 001099 001099 011 001099 016 RNF7031 I 00 047 The name or indicator SQLAID is not referenced.
+ERROR      0 001 1 001101 001101 011 001101 016 RNF7031 I 00 047 The name or indicator SQLABC is not referenced.
+ERROR      0 001 1 001103 001103 011 001103 016 RNF7031 I 00 047 The name or indicator SQLCOD is not referenced.
+ERROR      0 001 1 001105 001105 011 001105 016 RNF7031 I 00 047 The name or indicator SQLERL is not referenced.
+ERROR      0 001 1 001107 001107 011 001107 016 RNF7031 I 00 047 The name or indicator SQLERM is not referenced.
+ERROR      0 001 1 001109 001109 011 001109 016 RNF7031 I 00 047 The name or indicator SQLERP is not referenced.
+ERROR      0 001 1 001111 001111 011 001111 016 RNF7031 I 00 047 The name or indicator SQLER1 is not referenced.
+ERROR      0 001 1 001112 001112 011 001112 016 RNF7031 I 00 047 The name or indicator SQLER2 is not referenced.
+ERROR      0 001 1 001113 001113 011 001113 016 RNF7031 I 00 047 The name or indicator SQLER3 is not referenced.
+ERROR      0 001 1 001114 001114 011 001114 016 RNF7031 I 00 047 The name or indicator SQLER4 is not referenced.
+ERROR      0 001 1 001115 001115 011 001115 016 RNF7031 I 00 047 The name or indicator SQLER5 is not referenced.
+ERROR      0 001 1 001117 001117 011 001117 017 RNF7031 I 00 048 The name or indicator SQLERRD is not referenced.
+ERROR      0 001 1 001119 001119 011 001119 016 RNF7031 I 00 047 The name or indicator SQLWN0 is not referenced.
+ERROR      0 001 1 001120 001120 011 001120 016 RNF7031 I 00 047 The name or indicator SQLWN1 is not referenced.
+ERROR      0 001 1 001121 001121 011 001121 016 RNF7031 I 00 047 The name or indicator SQLWN2 is not referenced.
+ERROR      0 001 1 001122 001122 011 001122 016 RNF7031 I 00 047 The name or indicator SQLWN3 is not referenced.
+ERROR      0 001 1 001123 001123 011 001123 016 RNF7031 I 00 047 The name or indicator SQLWN4 is not referenced.
+ERROR      0 001 1 001124 001124 011 001124 016 RNF7031 I 00 047 The name or indicator SQLWN5 is not referenced.
+ERROR      0 001 1 001125 001125 011 001125 016 RNF7031 I 00 047 The name or indicator SQLWN6 is not referenced.
+ERROR      0 001 1 001126 001126 011 001126 016 RNF7031 I 00 047 The name or indicator SQLWN7 is not referenced.
+ERROR      0 001 1 001127 001127 011 001127 016 RNF7031 I 00 047 The name or indicator SQLWN8 is not referenced.
+ERROR      0 001 1 001128 001128 011 001128 016 RNF7031 I 00 047 The name or indicator SQLWN9 is not referenced.
+ERROR      0 001 1 001129 001129 011 001129 016 RNF7031 I 00 047 The name or indicator SQLWNA is not referenced.
+ERROR      0 001 1 001130 001130 011 001130 017 RNF7031 I 00 048 The name or indicator SQLWARN is not referenced.
+ERROR      0 001 1 001132 001132 011 001132 016 RNF7031 I 00 047 The name or indicator SQLSTT is not referenced.
+ERROR      0 001 1 001143 001143 015 001143 026 RNF7031 I 00 051 The name or indicator SQLCLSE... is not referenced.
+ERROR      0 001 1 001147 001147 015 001147 026 RNF7031 I 00 051 The name or indicator SQLCMIT... is not referenced.
+ERROR      0 001 1 001139 001139 015 001139 026 RNF7031 I 00 051 The name or indicator SQLOPEN... is not referenced.
+ERROR      0 001 1 000923 000923 007 000923 025 RNF7031 I 00 051 The name or indicator TIER_CO... is not referenced.
+ERROR      0 001 1 000916 000916 007 000916 026 RNF7031 I 00 051 The name or indicator TIER_DA... is not referenced.
+ERROR      0 001 1 000919 000919 007 000919 020 RNF7031 I 00 051 The name or indicator TIER_DE... is not referenced.
+ERROR      0 001 1 000915 000915 007 000915 025 RNF7031 I 00 051 The name or indicator TIER_EN... is not referenced.
+ERROR      0 001 1 000918 000918 007 000918 023 RNF7031 I 00 051 The name or indicator TIER_LO... is not referenced.
+ERROR      0 001 1 000920 000920 007 000920 022 RNF7031 I 00 051 The name or indicator TIER_MO... is not referenced.
+ERROR      0 001 1 000917 000917 007 000917 024 RNF7031 I 00 051 The name or indicator TIER_PH... is not referenced.
+ERROR      0 001 1 000922 000922 007 000922 019 RNF7031 I 00 051 The name or indicator TIER_PR... is not referenced.
+ERROR      0 001 1 000921 000921 007 000921 017 RNF7031 I 00 051 The name or indicator TIER_SR... is not referenced.
+ERROR      0 001 1 001022 001022 003 001022 010 RNF7031 I 00 049 The name or indicator USERAREA is not referenced.
+ERROR      0 001 1 001023 001023 003 001023 012 RNF7031 I 00 051 The name or indicator HEADERSIZE is not referenced.
+ERROR      0 001 1 001024 001024 003 001024 013 RNF7031 I 00 051 The name or indicator FORMATL... is not referenced.
+ERROR      0 001 1 001025 001025 003 001025 012 RNF7031 I 00 051 The name or indicator FORMATNAME is not referenced.
+ERROR      0 001 1 001026 001026 003 001026 009 RNF7031 I 00 048 The name or indicator APIUSED is not referenced.
+ERROR      0 001 1 001027 001027 003 001027 010 RNF7031 I 00 049 The name or indicator DATETIME is not referenced.
+ERROR      0 001 1 001028 001028 003 001028 012 RNF7031 I 00 051 The name or indicator INFOSTATUS is not referenced.
+ERROR      0 001 1 001029 001029 003 001029 011 RNF7031 I 00 050 The name or indicator SPACESIZE is not referenced.
+ERROR      0 001 1 001030 001030 003 001030 013 RNF7031 I 00 051 The name or indicator INPUTOF... is not referenced.
+ERROR      0 001 1 001031 001031 003 001031 011 RNF7031 I 00 050 The name or indicator INPUTSIZE is not referenced.
+ERROR      0 001 1 001032 001032 003 001032 014 RNF7031 I 00 051 The name or indicator HEADERO... is not referenced.
+ERROR      0 001 1 001033 001033 003 001033 013 RNF7031 I 00 051 The name or indicator HEADERS... is not referenced.
+ERROR      0 001 1 001034 001034 003 001034 012 RNF7031 I 00 051 The name or indicator LISTOFFSET is not referenced.
+ERROR      0 001 1 001035 001035 003 001035 010 RNF7031 I 00 049 The name or indicator LISTSIZE is not referenced.
+ERROR      0 001 1 001036 001036 003 001036 012 RNF7031 I 00 051 The name or indicator NUMENTRIES is not referenced.
+ERROR      0 001 1 001037 001037 003 001037 011 RNF7031 I 00 050 The name or indicator ENTRYSIZE is not referenced.
+ERROR      0 001 1 000342 000342 008 000342 018 RNF7031 I 00 051 The name or indicator WAITSEC... is not referenced.
+ERROR      0 001 1 001211 001211 001 001211 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001213 001213 001 001213 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001215 001215 001 001215 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001218 001218 001 001218 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001220 001220 001 001220 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001222 001222 001 001222 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001226 001226 001 001226 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001227 001227 001 001227 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001228 001228 001 001228 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001229 001229 001 001229 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001232 001232 001 001232 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001233 001233 001 001233 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001234 001234 001 001234 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001235 001235 001 001235 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001238 001238 001 001238 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001240 001240 001 001240 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001241 001241 001 001241 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001292 001292 001 001292 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001293 001293 001 001293 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001305 001305 001 001305 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001307 001307 001 001307 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001311 001311 001 001311 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001312 001312 001 001312 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001321 001321 001 001321 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001328 001328 001 001328 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001333 001333 001 001333 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001342 001342 001 001342 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001343 001343 001 001343 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001344 001344 001 001344 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001345 001345 001 001345 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001346 001346 001 001346 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001347 001347 001 001347 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001348 001348 001 001348 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001349 001349 001 001349 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001370 001370 001 001370 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001371 001371 001 001371 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001372 001372 001 001372 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001373 001373 001 001373 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001374 001374 001 001374 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001375 001375 001 001375 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001376 001376 001 001376 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001377 001377 001 001377 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001746 001746 001 001746 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001990 001990 001 001990 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+ERROR      0 001 1 001991 001991 001 001991 000 RNF5409 I 00 069 The prototyped call returns a value which is lost when CALLP is used.
+FILEEND    0 001 002043

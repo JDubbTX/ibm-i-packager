@@ -1,0 +1,60 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CUSTRPT.
+      *================================================================*
+      * Sample ILE COBOL Program: CUSTRPT.CBLLE                        *
+      * Built with IBM i TOBi (makei) -> *PGM (CBLLE) - Tier 70        *
+      * Reads Customer Master (CUSTPF) and writes Report (ORDPRTF)     *
+      *================================================================*
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       SOURCE-COMPUTER. IBM-ISERIES.
+       OBJECT-COMPUTER. IBM-ISERIES.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT CUST-FILE
+               ASSIGN TO DATABASE-CUSTPF
+               ORGANIZATION IS INDEXED
+               ACCESS MODE IS SEQUENTIAL
+               RECORD KEY IS EXTERNALLY-DESCRIBED-KEY
+               FILE STATUS IS WS-CUST-STATUS.
+           SELECT RPT-FILE
+               ASSIGN TO FORMATFILE-ORDPRTF
+               ORGANIZATION IS SEQUENTIAL
+               FILE STATUS IS WS-RPT-STATUS.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD  CUST-FILE
+           LABEL RECORDS ARE STANDARD.
+       01  CUST-RECORD.
+           COPY DDS-ALL-FORMATS OF CUSTPF.
+
+       FD  RPT-FILE
+           LABEL RECORDS ARE OMITTED.
+       01  RPT-RECORD.
+           COPY DDS-ALL-FORMATS OF ORDPRTF.
+
+       WORKING-STORAGE SECTION.
+       01  WS-CUST-STATUS          PIC X(02) VALUE SPACES.
+       01  WS-RPT-STATUS           PIC X(02) VALUE SPACES.
+       01  WS-EOF-FLAG             PIC X(01) VALUE 'N'.
+           88  END-OF-CUSTOMERS              VALUE 'Y'.
+
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           OPEN INPUT  CUST-FILE
+                OUTPUT RPT-FILE.
+           WRITE RPT-RECORD FORMAT IS "RPTHEAD".
+           PERFORM UNTIL END-OF-CUSTOMERS
+               READ CUST-FILE NEXT RECORD
+                   AT END
+                       SET END-OF-CUSTOMERS TO TRUE
+                   NOT AT END
+                       MOVE CORR CUSTR OF CUST-RECORD
+                         TO RPTDTL-O OF RPT-RECORD
+                       WRITE RPT-RECORD FORMAT IS "RPTDTL"
+               END-READ
+           END-PERFORM.
+           CLOSE CUST-FILE
+                 RPT-FILE.
+           GOBACK.

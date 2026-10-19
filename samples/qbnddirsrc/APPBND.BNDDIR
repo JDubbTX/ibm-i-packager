@@ -1,0 +1,8 @@
+/* ========================================================================== */
+/* Sample Binding Directory Source: APPBND.BNDDIR                             */
+/* Built with IBM i TOBi (makei) -> APPBND (*BNDDIR) - Precedence Tier 50     */
+/* ========================================================================== */
+!DLTBNDDIR BNDDIR(&O/&N)
+CRTBNDDIR  BNDDIR(&O/&N) +
+             TEXT('Sample Application Binding Directory')
+ADDBNDDIRE BNDDIR(&O/&N) OBJ((TAXSRV *SRVPGM))

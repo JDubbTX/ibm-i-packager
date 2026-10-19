@@ -1,0 +1,15 @@
+/* ========================================================================== */
+/* Sample Message File Source (APPMSGF.MSGF) - Built by IBM i TOBi (makei)    */
+/* Target Object: APPMSGF (*MSGF) - Precedence Tier 20                        */
+/* ========================================================================== */
+!DLTMSGF   MSGF(&O/&N)
+CRTMSGF    MSGF(&O/&N) +
+             TEXT('Sample Order Application Message File')
+ADDMSGD    MSGID(ORD0001) MSGF(&O/&N) +
+             MSG('Order &1 for Customer &2 created with total $&3.') +
+             SECLVL('&N Cause . . . . . : Order &1 was validated and +
+             recorded in ORDHDR.') +
+             FMT((*DEC 10 0) (*DEC 8 0) (*DEC 11 2))
+ADDMSGD    MSGID(ORD0002) MSGF(&O/&N) +
+             MSG('Customer &1 was not found in Customer Master CUSTPF.') +
+             SEV(30) FMT((*DEC 8 0))

@@ -1,0 +1,20 @@
+{
+  "description": "IBM i CI/CD Object Packager (#PACK / #UNPACK) and Sample Object Suite",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/IBM/ibmi-tobi",
+  "objlib": "&lib1",
+  "curlib": "&lib1",
+  "includePath": [
+    ".",
+    "src/qrpglesrc",
+    "samples/qrpglesrc"
+  ],
+  "preUsrlibl": [
+    "RPGUNIT"
+  ],
+  "postUsrlibl": [],
+  "setIBMiEnvCmd": [],
+  "buildCommand": "makei build",
+  "compileCommand": "makei compile -f {filename}"
+}

@@ -1,0 +1,24 @@
+{
+  "rpgunit": {
+    "rucrtrpg": {
+      "tgtCcsid": "*JOB",
+      "dbgView": "*SOURCE",
+      "rpgPpOpt": "*LVL2",
+      "cOption": [
+        "*EVENTF",
+        "*SRCSTMT",
+        "*NODEBUGIO"
+      ]
+    },
+    "rucalltst": {
+      "order": "*API",
+      "libl": "*CURRENT",
+      "jobD": "*DFT",
+      "detail": "*ALL",
+      "output": "*ALLWAYS",
+      "rclRsc": "*NO",
+      "onFailure": "*ABORT"
+    }
+  }
+}
+

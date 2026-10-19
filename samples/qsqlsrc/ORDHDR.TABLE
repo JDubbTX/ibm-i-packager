@@ -1,0 +1,16 @@
+-- ============================================================================
+-- Sample SQL DDL Table: ORDHDR (Order Header Table)
+-- Built with IBM i TOBi (makei) -> *FILE (PF-DTA SQL Table) - Tier 30
+-- ============================================================================
+CREATE OR REPLACE TABLE ORDHDR (
+  ORDER_ID       FOR COLUMN ORDID      DECIMAL(10, 0) NOT NULL,
+  CUSTOMER_ID    FOR COLUMN ORDCUST    DECIMAL(8, 0)  NOT NULL,
+  ORDER_DATE     FOR COLUMN ORDDATE    DATE           NOT NULL DEFAULT CURRENT_DATE,
+  SUBTOTAL_AMT   FOR COLUMN ORDSUB     DECIMAL(11, 2) NOT NULL DEFAULT 0.00,
+  TAX_AMT        FOR COLUMN ORDTAX     DECIMAL(11, 2) NOT NULL DEFAULT 0.00,
+  TOTAL_AMT      FOR COLUMN ORDTOT     DECIMAL(11, 2) NOT NULL DEFAULT 0.00,
+  ORDER_STATUS   FOR COLUMN ORDSTS     CHAR(1)        NOT NULL DEFAULT 'O',
+  CONSTRAINT ORDHDR_PK PRIMARY KEY (ORDER_ID)
+) RCDFMT ORDHDRR;
+
+LABEL ON TABLE ORDHDR IS 'Sample SQL DDL Order Header Table';

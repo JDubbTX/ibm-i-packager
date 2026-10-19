@@ -1,0 +1,1 @@
+SUBDIRS := qrpglesrc qcllesrc qcmdsrc

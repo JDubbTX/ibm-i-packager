@@ -1,0 +1,86 @@
+[
+    {
+        "cmd": "CRTCMD CMD(PACKAGER/UNPACK) srcstmf('/home/jweirich/builds/ibm-i-packager/src/qcmdsrc/UNPACK.cmd') PGM(PACKAGER/UNPACKC) VLDCKR(*NONE) PMTFILE(*NONE) HLPPNLGRP(*NONE) HLPID(*NONE) AUT() ALLOW()  CURLIB(PACKAGER) PRDLIB()",
+        "cmd_time": "2026-10-19-12.03.12.00",
+        "msgs": [
+            {
+                "msgid": "CPC2198",
+                "type": "COMPLETION",
+                "severity": 0,
+                "message_time": "2026-10-19-12.03.12.416767",
+                "message_text": "Current library changed to PACKAGER.",
+                "second_level": "&N Cause . . . . . :   The current library in the library list was changed to PACKAGER.",
+                "from_program": "QLICHLLE",
+                "from_library": "QSYS",
+                "from_instruction": "01A3",
+                "to_program": "QP2USER2",
+                "to_library": "QSYS",
+                "to_module": "QP2API",
+                "to_procedure": "runpase_common__FiPvT2",
+                "to_instruction": "4"
+            },
+            {
+                "msgid": "CPC2196",
+                "type": "COMPLETION",
+                "severity": 0,
+                "message_time": "2026-10-19-12.03.12.417741",
+                "message_text": "Library RPGUNIT added to library list.",
+                "second_level": "&N Cause . . . . . :   If the ADDLIBLE command was used, RPGUNIT was added to the user library list.  If the CHGSYSLIBL command was used, RPGUNIT was added to the system portion of the library list.",
+                "from_program": "QLICUSRL",
+                "from_library": "QSYS",
+                "from_instruction": "0114",
+                "to_program": "QP2USER2",
+                "to_library": "QSYS",
+                "to_module": "QP2API",
+                "to_procedure": "runpase_common__FiPvT2",
+                "to_instruction": "4"
+            }
+        ],
+        "object": "UNPACK.CMD",
+        "source": "/home/jweirich/builds/ibm-i-packager/src/qcmdsrc/UNPACK.cmd",
+        "output": "/home/jweirich/builds/ibm-i-packager/.logs/src_qcmdsrc_UNPACK_CMD.splf",
+        "failed": false
+    },
+    {
+        "cmd": "crtsqlrpgi obj(PACKAGER/TPKGTEST) srcstmf('/home/jweirich/builds/ibm-i-packager/test/qrpglesrc/pkgtest.test.sqlrpgle') COMMIT(*NONE) OBJTYPE(*MODULE) OPTION(*EVENTF) OUTPUT(*PRINT) TEXT('') TGTRLS() DBGVIEW(*SOURCE) DBGENCKEY(*NONE) USRPRF(*USER) RPGPPOPT(*LVL2) COMPILEOPT('TGTCCSID(*JOB) OPTIMIZE() INCDIR(''.'' ''src/qrpglesrc'' ''samples/qrpglesrc'')')",
+        "cmd_time": "2026-10-19-12.03.15.00",
+        "msgs": [
+            {
+                "msgid": "CPC2198",
+                "type": "COMPLETION",
+                "severity": 0,
+                "message_time": "2026-10-19-12.03.15.249448",
+                "message_text": "Current library changed to PACKAGER.",
+                "second_level": "&N Cause . . . . . :   The current library in the library list was changed to PACKAGER.",
+                "from_program": "QLICHLLE",
+                "from_library": "QSYS",
+                "from_instruction": "01A3",
+                "to_program": "QP2USER2",
+                "to_library": "QSYS",
+                "to_module": "QP2API",
+                "to_procedure": "runpase_common__FiPvT2",
+                "to_instruction": "4"
+            },
+            {
+                "msgid": "CPC2196",
+                "type": "COMPLETION",
+                "severity": 0,
+                "message_time": "2026-10-19-12.03.15.250448",
+                "message_text": "Library RPGUNIT added to library list.",
+                "second_level": "&N Cause . . . . . :   If the ADDLIBLE command was used, RPGUNIT was added to the user library list.  If the CHGSYSLIBL command was used, RPGUNIT was added to the system portion of the library list.",
+                "from_program": "QLICUSRL",
+                "from_library": "QSYS",
+                "from_instruction": "0114",
+                "to_program": "QP2USER2",
+                "to_library": "QSYS",
+                "to_module": "QP2API",
+                "to_procedure": "runpase_common__FiPvT2",
+                "to_instruction": "4"
+            }
+        ],
+        "object": "TPKGTEST.MODULE",
+        "source": "/home/jweirich/builds/ibm-i-packager/test/qrpglesrc/pkgtest.test.sqlrpgle",
+        "output": "/home/jweirich/builds/ibm-i-packager/.logs/test_qrpglesrc_'TPKGTEST_MODULE'.splf",
+        "failed": false
+    }
+]

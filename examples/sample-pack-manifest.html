@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>IBM i Package Manifest - Version REL-26.10A</title>
+  <style>
+    :root{--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#f8fafc;--muted:#94a3b8;--accent:#38bdf8;--badge:#0284c7;--ok:#22c55e;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);padding:2rem;line-height:1.5;}
+    .container{max-width:1280px;margin:0 auto;}
+    .hero{background:linear-gradient(135deg,#0284c7 0%,#1e3a8a 100%);border-radius:12px;padding:1.75rem 2rem;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;box-shadow:0 10px 25px rgba(0,0,0,0.3);}
+    .hero h1{font-size:1.6rem;font-weight:700;letter-spacing:-0.02em;}
+    .hero .subtitle{color:#e0f2fe;font-size:0.95rem;margin-top:0.25rem;}
+    .ver-pill{background:rgba(15,23,42,0.75);border:2px solid #7dd3fc;padding:0.75rem 1.25rem;border-radius:10px;text-align:right;}
+    .ver-pill .lbl{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:#bae6fd;display:block;}
+    .ver-pill .val{font-size:1.5rem;font-weight:800;font-family:monospace;color:#ffffff;}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;}
+    .card .k{font-size:0.75rem;text-transform:uppercase;color:var(--muted);letter-spacing:0.05em;}
+    .card .v{font-size:1.1rem;font-weight:600;margin-top:0.25rem;word-break:break-all;}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:1rem;flex-wrap:wrap;}
+    .search{background:var(--card);border:1px solid var(--border);color:var(--text);padding:0.6rem 1rem;border-radius:8px;width:320px;font-size:0.9rem;}
+    .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+    table{width:100%;border-collapse:collapse;text-align:left;}
+    th{background:#0f172a;color:var(--muted);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;padding:0.85rem 1rem;border-bottom:1px solid var(--border);}
+    td{padding:0.75rem 1rem;border-bottom:1px solid rgba(51,65,85,0.6);font-size:0.9rem;}
+    tr:hover td{background:rgba(56,189,248,0.06);}
+    .mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;}
+    .badge{display:inline-block;padding:0.2rem 0.55rem;border-radius:6px;font-size:0.78rem;font-weight:600;font-family:monospace;background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid rgba(56,189,248,0.3);}
+    .stamp{background:rgba(34,197,94,0.15);color:#4ade80;border:1px solid rgba(34,197,94,0.3);padding:0.2rem 0.55rem;border-radius:6px;font-family:monospace;font-size:0.8rem;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <div>
+        <h1>IBM i CI/CD Package Manifest (#PACK)</h1>
+        <div class="subtitle">IFS Stream File: /cicd/artifacts/BUILDLIB_REL-26.10A.savf</div>
+      </div>
+      <div class="ver-pill">
+        <span class="lbl">Package Version (USRDFNATR)</span>
+        <span class="val">REL-26.10A</span>
+      </div>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="k">Package Version</div><div class="v mono">REL-26.10A</div></div>
+      <div class="card"><div class="k">Source Library</div><div class="v mono">BUILDLIB</div></div>
+      <div class="card"><div class="k">Objects Packaged</div><div class="v">8</div></div>
+      <div class="card"><div class="k">Target Release</div><div class="v mono">*CURRENT</div></div>
+      <div class="card"><div class="k">Total Size (Bytes)</div><div class="v mono">491520</div></div>
+      <div class="card"><div class="k">Generated Timestamp</div><div class="v">2026-10-18-08.15.00.000000</div></div>
+    </div>
+    <div class="toolbar">
+      <h2>Packaged Objects Inventory</h2>
+      <input type="text" id="q" class="search" placeholder="Filter by object name, type, or attribute..." onkeyup="filterRows()">
+    </div>
+    <div class="table-wrap">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>#</th><th>Object Name</th><th>Object Type</th><th>Attribute / SQL Type</th>
+            <th>Source Library</th><th>Version (USRDFNATR)</th><th>Size (Bytes)</th><th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td class="mono">TSTDTAARA</td><td><span class="badge">*DTAARA</span></td><td class="mono"></td><td class="mono">BUILDLIB</td><td><span class="stamp">REL-26.10A</span></td><td class="mono">8192</td><td>Application Control Data Area</td></tr>
+          <tr><td>2</td><td class="mono">TSTCUSTPF</td><td><span class="badge">*FILE</span></td><td class="mono">PF (TABLE)</td><td class="mono">BUILDLIB</td><td><span class="stamp">REL-26.10A</span></td><td class="mono">65536</td><td>Customer Master SQL Table</td></tr>
+          <tr><td>3</td><td class="mono">TSTSYSCFG</td><td><span class="badge">*FILE</span></td><td class="mono">PF (TABLE)</td><td class="mono">BUILDLIB</td><td><span class="stamp">REL-26.10A</span></td><td class="mono">49152</td><td>System Reference Configuration</td></tr>
+          <tr><td>4</td><td class="mono">TSTCUSTVW</td><td><span class="badge">*FILE</span></td><td class="mono">LF (VIEW)</td><td class="mono">BUILDLIB</td><td><span class="stamp">REL-26.10A</span></td><td class="mono">24576</td><td>Active Customers View</td></tr>
+          <tr><td>5</td><td class="mono">ORDDSPF</td><td><span class="badge">*FILE</span></td><td class="mono">DSPF</td><td class="mono">BUILDLIB</td><td><span class="stamp">REL-26.10A</span></td><td class="mono">40960</td><td>Order Entry Display File</td></tr>
+          <tr><td>6</td><td class="mono">TSTSRVPGM</td><td><span class="badge">*SRVPGM</span></td><td class="mono">RPGLE</td><td class="mono">BUILDLIB</td><td><span class="stamp">REL-26.10A</span></td><td class="mono">114688</td><td>Tax Calculation Service Program</td></tr>
+          <tr><td>7</td><td class="mono">TSTPGM1</td><td><span class="badge">*PGM</span></td><td class="mono">SQLRPGLE</td><td class="mono">BUILDLIB</td><td><span class="stamp">REL-26.10A</span></td><td class="mono">163840</td><td>Order Processing Driver</td></tr>
+          <tr><td>8</td><td class="mono">TSTCMD1</td><td><span class="badge">*CMD</span></td><td class="mono"></td><td class="mono">BUILDLIB</td><td><span class="stamp">REL-26.10A</span></td><td class="mono">24576</td><td>Order Entry Command</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <script>
+      function filterRows(){
+        var q=document.getElementById("q").value.toUpperCase(),
+            tr=document.getElementById("tbl").getElementsByTagName("tr");
+        for(var i=1;i<tr.length;i++){
+          tr[i].style.display=tr[i].innerText.toUpperCase().indexOf(q)>-1?"":"none";
+        }
+      }
+    </script>
+  </div>
+</body>
+</html>

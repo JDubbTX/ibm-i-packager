@@ -1,0 +1,45 @@
+/* ========================================================================= */
+/* Program:     RUNTESTS                                                     */
+/* Source File: test/qcllesrc/RUNTESTS.clle                                  */
+/* Description: Compiles and executes the iRPGUnit test suite (TPKGTEST)     */
+/*              for the IBM i CI/CD Packager (#PACK and #UNPACK).            */
+/*                                                                           */
+/* Parameters:                                                               */
+/*   &TGTLIB   - Library containing #PACK/#UNPACK and target for TPKGTEST    */
+/*   &REPOROOT - IFS root directory of the repository                        */
+/*   &RPGULIB  - Library where iRPGUnit is installed (default: RPGUNIT)      */
+/* ========================================================================= */
+             PGM        PARM(&TGTLIB &REPOROOT &RPGULIB)
+
+             DCL        VAR(&TGTLIB)   TYPE(*CHAR) LEN(10)
+             DCL        VAR(&REPOROOT) TYPE(*CHAR) LEN(128)
+             DCL        VAR(&RPGULIB)  TYPE(*CHAR) LEN(10)
+             DCL        VAR(&TSTSTMF)  TYPE(*CHAR) LEN(256)
+             DCL        VAR(&INCDIR)   TYPE(*CHAR) LEN(256)
+
+             /* 1. Add iRPGUnit and Target Library to Library List */
+             ADDLIBLE   LIB(&RPGULIB) POSITION(*FIRST)
+             MONMSG     MSGID(CPF2103)
+
+             ADDLIBLE   LIB(&TGTLIB) POSITION(*FIRST)
+             MONMSG     MSGID(CPF2103)
+
+             CHGVAR     VAR(&TSTSTMF) VALUE(%TRIM(&REPOROOT) *CAT +
+                          '/test/qrpglesrc/pkgtest.test.sqlrpgle')
+             CHGVAR     VAR(&INCDIR) VALUE(%TRIM(&REPOROOT) *CAT +
+                          '/src/qrpglesrc')
+
+             /* 2. Compile TPKGTEST Service Program using RUCRTRPG */
+             RUCRTRPG   TSTPGM(&TGTLIB/TPKGTEST) +
+                          SRCSTMF(&TSTSTMF) +
+                          COPTION(*EVENTF *SRCSTMT *NODEBUGIO) +
+                          DBGVIEW(*SOURCE) +
+                          RPGPPOPT(*LVL2) +
+                          INCDIR(&INCDIR)
+
+             /* 3. Execute iRPGUnit Test Suite */
+             RUCALLTST  TSTPGM(&TGTLIB/TPKGTEST) +
+                          TSTPRC(*ALL) +
+                          DETAIL(*ALL)
+
+             ENDPGM

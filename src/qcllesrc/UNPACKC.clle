@@ -1,0 +1,126 @@
+/* ========================================================================= */
+/* Program:     UNPACKC                                                      */
+/* Source File: UNPACKC.clle                                                 */
+/* Description: Command Processing Program (CPP) for #UNPACK command.        */
+/*              Stages IFS stream file into QTEMP Save File if needed,       */
+/*              initializes optional Rollback Save File, and invokes         */
+/*              SQLRPGLE engine UNPACKR to unpack objects in dependency      */
+/*              precedence order while preserving object authorities and     */
+/*              existing PF/Table data.                                      */
+/* ========================================================================= */
+             PGM        PARM(&INPTYPE &SAVFQUAL &STMF &DFTLIB +
+                          &LIBMAP &MAPFILE &CPYDTA &BKPQUAL +
+                          &MANIFEST)
+
+             /* Command Parameters */
+             DCL        VAR(&INPTYPE)  TYPE(*CHAR) LEN(6)
+             DCL        VAR(&SAVFQUAL) TYPE(*CHAR) LEN(20)
+             DCL        VAR(&STMF)     TYPE(*CHAR) LEN(256)
+             DCL        VAR(&DFTLIB)   TYPE(*CHAR) LEN(10)
+             DCL        VAR(&LIBMAP)   TYPE(*CHAR) LEN(1024)
+             DCL        VAR(&MAPFILE)  TYPE(*CHAR) LEN(256)
+             DCL        VAR(&CPYDTA)   TYPE(*CHAR) LEN(4)
+             DCL        VAR(&BKPQUAL)  TYPE(*CHAR) LEN(20)
+             DCL        VAR(&MANIFEST) TYPE(*CHAR) LEN(256)
+
+             /* Working Variables */
+             DCL        VAR(&SAVFNAME) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SAVFLIB)  TYPE(*CHAR) LEN(10)
+             DCL        VAR(&WRKSAVF)  TYPE(*CHAR) LEN(10)
+             DCL        VAR(&WRKLIB)   TYPE(*CHAR) LEN(10)
+             DCL        VAR(&BKPSAVF)  TYPE(*CHAR) LEN(10)
+             DCL        VAR(&BKPLIB)   TYPE(*CHAR) LEN(10)
+             DCL        VAR(&TOMBR)    TYPE(*CHAR) LEN(64)
+             DCL        VAR(&FULLMNFT) TYPE(*CHAR) LEN(256)
+             DCL        VAR(&RTNCDE)   TYPE(*CHAR) LEN(1)  VALUE('0')
+             DCL        VAR(&MSGID)    TYPE(*CHAR) LEN(7)
+             DCL        VAR(&MSGDTA)   TYPE(*CHAR) LEN(256)
+
+             /* Global Error Trap */
+             MONMSG     MSGID(CPF0000) EXEC(GOTO CMDLBL(ERROR))
+
+             /* 1. Prepare Working Save File */
+             IF         COND(&INPTYPE *EQ '*SAVF') THEN(DO)
+                CHGVAR     VAR(&SAVFNAME) VALUE(%SST(&SAVFQUAL 1 10))
+                CHGVAR     VAR(&SAVFLIB)  VALUE(%SST(&SAVFQUAL 11 10))
+                IF         COND(&SAVFLIB *EQ '*CURLIB') THEN(DO)
+                   RTVJOBA    CURLIB(&SAVFLIB)
+                   IF         COND(&SAVFLIB *EQ '*NONE') THEN( +
+                      CHGVAR VAR(&SAVFLIB) VALUE('QGPL'))
+                ENDDO
+                CHKOBJ     OBJ(&SAVFLIB/&SAVFNAME) OBJTYPE(*FILE)
+                CHGVAR     VAR(&WRKSAVF) VALUE(&SAVFNAME)
+                CHGVAR     VAR(&WRKLIB)  VALUE(&SAVFLIB)
+             ENDDO
+             ELSE       CMD(DO)
+                /* Stage IFS stream file into QTEMP/UNPKSAVF */
+                CHGVAR     VAR(&WRKSAVF) VALUE('UNPKSAVF')
+                CHGVAR     VAR(&WRKLIB)  VALUE('QTEMP')
+
+                CHKOBJ     OBJ(QTEMP/UNPKSAVF) OBJTYPE(*FILE)
+                MONMSG     MSGID(CPF9801) EXEC(DO)
+                   CRTSAVF    FILE(QTEMP/UNPKSAVF) +
+                                TEXT('Staging Save File for #UNPACK') +
+                                AUT(*ALL)
+                ENDDO
+                CLRSAVF    FILE(QTEMP/UNPKSAVF)
+
+                CHGVAR     VAR(&TOMBR) +
+                             VALUE('/QSYS.LIB/QTEMP.LIB/UNPKSAVF.FILE')
+
+                CPYFRMSTMF FROMSTMF(&STMF) TOMBR(&TOMBR) +
+                             MBROPT(*REPLACE) CVTDTA(*NONE)
+             ENDDO
+
+             /* 2. Prepare Optional Rollback / Backup Save File */
+             CHGVAR     VAR(&BKPSAVF) VALUE(%SST(&BKPQUAL 1 10))
+             CHGVAR     VAR(&BKPLIB)  VALUE(%SST(&BKPQUAL 11 10))
+             IF         COND(&BKPSAVF *NE '*NONE') THEN(DO)
+                IF         COND(&BKPLIB *EQ '*CURLIB') THEN(DO)
+                   RTVJOBA    CURLIB(&BKPLIB)
+                   IF         COND(&BKPLIB *EQ '*NONE') THEN( +
+                      CHGVAR VAR(&BKPLIB) VALUE('QGPL'))
+                ENDDO
+                CHKOBJ     OBJ(&BKPLIB/&BKPSAVF) OBJTYPE(*FILE)
+                MONMSG     MSGID(CPF9801) EXEC(DO)
+                   CRTSAVF    FILE(&BKPLIB/&BKPSAVF) +
+                                TEXT('Rollback Backup Save File (#UNPACK)') +
+                                AUT(*ALL)
+                ENDDO
+                CLRSAVF    FILE(&BKPLIB/&BKPSAVF)
+             ENDDO
+
+             /* 3. Invoke SQLRPGLE Unpackaging Engine (UNPACKR) */
+             CALL       PGM(UNPACKR) PARM(&INPTYPE &STMF &WRKSAVF +
+                          &WRKLIB &DFTLIB &LIBMAP &MAPFILE &CPYDTA +
+                          &BKPSAVF &BKPLIB &MANIFEST &FULLMNFT +
+                          &RTNCDE)
+
+             /* 4. Clean up staging Save File if INPTYPE(*STMF) */
+             IF         COND(&INPTYPE *EQ '*STMF') THEN(DO)
+                DLTF       FILE(QTEMP/UNPKSAVF)
+                MONMSG     MSGID(CPF0000)
+             ENDDO
+
+             IF         COND(&RTNCDE *NE '0') THEN(DO)
+                SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) +
+                             MSGDTA('#UNPACK encountered one or more +
+                             errors while unpacking objects. Check +
+                             job log for details.') MSGTYPE(*ESCAPE)
+             ENDDO
+
+             SNDPGMMSG  MSGID(CPF9897) MSGF(QCPFMSG) +
+                          MSGDTA('#UNPACK completed successfully. +
+                          Manifest: ' *CAT %TRIM(&FULLMNFT)) +
+                          MSGTYPE(*COMP)
+             RETURN
+
+ ERROR:      RCVMSG     MSGTYPE(*EXCP) MSGDTA(&MSGDTA) MSGID(&MSGID)
+             IF         COND(&MSGID *EQ ' ') THEN( +
+                SNDPGMMSG MSGID(CPF9898) MSGF(QCPFMSG) +
+                          MSGDTA('Unexpected error in #UNPACK command') +
+                          MSGTYPE(*ESCAPE))
+             ELSE       CMD( +
+                SNDPGMMSG MSGID(&MSGID) MSGF(QCPFMSG) +
+                          MSGDTA(&MSGDTA) MSGTYPE(*ESCAPE))
+             ENDPGM

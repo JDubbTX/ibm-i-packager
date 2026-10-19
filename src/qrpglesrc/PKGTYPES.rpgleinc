@@ -1,0 +1,193 @@
+**FREE
+// ============================================================================
+// File: PKGTYPES.rpgleinc
+// Description: Shared prototypes, API structures, and constants for
+//              IBM i CI/CD Packager (#PACK) and Unpackager (#UNPACK)
+// ============================================================================
+
+/if defined(PKGTYPES_INCLUDED)
+/eof
+/endif
+/define PKGTYPES_INCLUDED
+
+// ----------------------------------------------------------------------------
+// Precedence Tiers for #UNPACK
+// ----------------------------------------------------------------------------
+dcl-c TIER_ENV_FOUNDATION   10; // *AUTL, *CLS, *JOBD, *SBSD, *OUTQ, *WSCST
+dcl-c TIER_DATA_CONTAINERS  15; // *MSGF, *DTAARA, *DTAQ
+dcl-c TIER_PHYSICAL_DATA    20; // *FILE (PF, PF-DTA, PF-SRC, SQL TABLE)
+dcl-c TIER_LOGICAL_DATA     30; // *FILE (LF, SQL VIEW, SQL INDEX, MQT)
+dcl-c TIER_DEVICE_UI        40; // *FILE (DSPF, PRTF, ICFF), *PNLGRP, *MENU
+dcl-c TIER_MODULES_BND      50; // *MODULE, *BNDDIR
+dcl-c TIER_SRVPGM           60; // *SRVPGM
+dcl-c TIER_PROGRAMS         70; // *PGM, *SQLPKG
+dcl-c TIER_COMMANDS_OTHER   80; // *CMD and any remaining object types
+
+// ----------------------------------------------------------------------------
+// Standard IBM i API Error Code Structure (QUSEC)
+// ----------------------------------------------------------------------------
+dcl-ds ApiError_t qualified template;
+  BytesProvided  int(10) inz(%size(ApiError_t));
+  BytesAvailable int(10) inz(0);
+  ExceptionId    char(7) inz(*blanks);
+  Reserved       char(1) inz(x'00');
+  ExceptionData  char(256) inz(*blanks);
+end-ds;
+
+// ----------------------------------------------------------------------------
+// Qualified Name Structure (20-char: 10 Object + 10 Library)
+// ----------------------------------------------------------------------------
+dcl-ds QualName_t qualified template;
+  Name char(10) inz(*blanks);
+  Lib  char(10) inz(*blanks);
+end-ds;
+
+// ----------------------------------------------------------------------------
+// Command Parameter Structures for #PACK
+// ----------------------------------------------------------------------------
+// Mixed list element for Object Specification on #PACK
+dcl-ds PackObjSpec_t qualified template;
+  ObjName char(10);
+  ObjLib  char(10);
+  ObjType char(10);
+end-ds;
+
+// ----------------------------------------------------------------------------
+// Command & JSON Parameter Structures for #UNPACK Library Mapping
+// ----------------------------------------------------------------------------
+// Mapping rule: Map (ObjName, ObjType, ObjExtendedAttr) -> Target Library
+//               with optional PreserveData override ('Y', 'N', or ' ')
+dcl-ds LibMapEntry_t qualified template;
+  ObjName      char(10); // *ALL, exact name, or generic 'ABC*'
+  ObjType      char(10); // e.g. *FILE, *PGM, *SRVPGM, *ALL
+  ObjAttr      char(10); // e.g. *ALL, PF, LF, DSPF, PRTF, TB, VW, IX, RPGLE
+  TgtLib       char(10); // Target library for matching objects
+  PreserveData char(1);  // 'Y' = preserve data, 'N' = overwrite, ' ' = default
+end-ds;
+
+// Explicit per-file override from JSON MAPFILE ("fileOverrides" array)
+dcl-ds FileDataOverride_t qualified template;
+  FileName     char(10); // Exact file name or generic 'ABC*'
+  TgtLib       char(10); // Optional target library override for this file
+  PreserveData char(1);  // 'Y' = preserve existing data, 'N' = do not preserve
+end-ds;
+
+// ----------------------------------------------------------------------------
+// QLICOBJD - Change Object Description API
+// Used to stamp the 10-character version into USRDFNATR (Key 9)
+// ----------------------------------------------------------------------------
+dcl-pr QLICOBJD extpgm('QLICOBJD');
+  RtnLib        char(10);
+  QualObjName   char(20) const;
+  ObjType       char(10) const;
+  ChangedInfo   char(64) const options(*varsize);
+  ErrorCode     likeds(ApiError_t);
+end-pr;
+
+// Key 9 structure for QLICOBJD: User-defined attribute (10 chars)
+dcl-ds ChgObjUsrDfnAtr_t qualified template;
+  NumRcds   int(10) inz(1);
+  Key       int(10) inz(9);      // Key 9 = User-defined attribute
+  DataLen   int(10) inz(10);     // Length = 10 bytes
+  UsrDfnAtr char(10) inz(*blanks);
+end-ds;
+
+// ----------------------------------------------------------------------------
+// User Space APIs (QUSCRTUS, QUSPTRUS, QUSDLTUS)
+// Used with QSZRTVSO to inspect Save File contents
+// ----------------------------------------------------------------------------
+dcl-pr QUSCRTUS extpgm('QUSCRTUS');
+  QualUsrSpc  char(20) const;
+  ExtAttr     char(10) const;
+  InitSize    int(10)  const;
+  InitVal     char(1)  const;
+  PubAuth     char(10) const;
+  TextDesc    char(50) const;
+  Replace     char(10) const;
+  ErrorCode   likeds(ApiError_t);
+end-pr;
+
+dcl-pr QUSPTRUS extpgm('QUSPTRUS');
+  QualUsrSpc  char(20) const;
+  Pointer     pointer;
+  ErrorCode   likeds(ApiError_t);
+end-pr;
+
+dcl-pr QUSDLTUS extpgm('QUSDLTUS');
+  QualUsrSpc  char(20) const;
+  ErrorCode   likeds(ApiError_t);
+end-pr;
+
+// Generic User Space Header (0100 format)
+dcl-ds UsrSpcHeader_t qualified template;
+  UserArea      char(64);
+  HeaderSize    int(10);
+  FormatLevel   char(4);
+  FormatName    char(8);
+  ApiUsed       char(10);
+  DateTime      char(13);
+  InfoStatus    char(1);
+  SpaceSize     int(10);
+  InputOffset   int(10);
+  InputSize     int(10);
+  HeaderOffset  int(10);
+  HeaderSize2   int(10);
+  ListOffset    int(10);
+  ListSize      int(10);
+  NumEntries    int(10);
+  EntrySize     int(10);
+end-ds;
+
+// ----------------------------------------------------------------------------
+// QSRLSAVF - List Save File Objects API (Format SAVF0200)
+// ----------------------------------------------------------------------------
+dcl-pr QSRLSAVF extpgm('QSRLSAVF');
+  QualUsrSpc    char(20) const;
+  FormatName    char(8)  const;
+  QualSavfName  char(20) const;
+  ObjNameFilter char(10) const;
+  ObjTypeFilter char(10) const;
+  ContHandle    char(36) const;
+  ErrorCode     likeds(ApiError_t);
+end-pr;
+
+// Format SAVF0200 List Entry Structure
+dcl-ds SAVI0200_t qualified template;
+  ObjName      char(10);
+  SavedLib     char(10);
+  ObjType      char(10);
+  ExtObjAttr   char(10);
+  SaveDateTime char(8);
+  ObjSize      int(10);
+  ObjSizeMult  int(10);
+  Asp          int(10);
+  DataSaved    char(1);
+  ObjOwner     char(10);
+  DloName      char(20);
+  Folder       char(63);
+  TextDesc     char(50);
+  AspDevName   char(10);
+end-ds;
+
+// ----------------------------------------------------------------------------
+// QCMDEXC - Execute CL Command from RPG
+// ----------------------------------------------------------------------------
+dcl-pr QCMDEXC extpgm('QCMDEXC');
+  CmdStr char(32702) const options(*varsize);
+  CmdLen packed(15:5) const;
+end-pr;
+
+// ----------------------------------------------------------------------------
+// QMHSNDPM - Send Program Message
+// ----------------------------------------------------------------------------
+dcl-pr QMHSNDPM extpgm('QMHSNDPM');
+  MsgId      char(7)   const;
+  QualMsgf   char(20)  const;
+  MsgData    char(512) const options(*varsize);
+  MsgDataLen int(10)   const;
+  MsgType    char(10)  const;
+  CallStkEnt char(10)  const;
+  CallStkCnt int(10)   const;
+  MsgKey     char(4);
+  ErrorCode  likeds(ApiError_t);
+end-pr;

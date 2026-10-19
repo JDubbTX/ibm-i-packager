@@ -1,0 +1,17 @@
+     A*=====================================================================
+     A* Sample DDS Physical File: CUSTPF (Customer Master)
+     A* Built with IBM i TOBi (makei) -> *FILE (PF-DTA) - Precedence Tier 30
+     A*=====================================================================
+     A                                      UNIQUE
+     A          R CUSTR
+     A            CUSTID         8P 0       TEXT('Customer ID')
+     A                                      COLHDG('Cust' 'ID')
+     A            CUSTNAME      40A         TEXT('Customer Name')
+     A                                      COLHDG('Customer' 'Name')
+     A            CUSTSTATE      2A         TEXT('State Code')
+     A                                      COLHDG('St')
+     A            CUSTBAL       11P 2       TEXT('Account Balance')
+     A                                      COLHDG('Account' 'Balance')
+     A            CUSTSTAT       1A         TEXT('Status A=Active I=Inactive')
+     A                                      COLHDG('Sts')
+     A          K CUSTID

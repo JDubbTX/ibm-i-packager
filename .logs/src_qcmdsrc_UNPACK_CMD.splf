@@ -1,0 +1,191 @@
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+CPC2198: Current library changed to PACKAGER.
+CPC2196: Library RPGUNIT added to library list.
+>> executing command: CRTCMD CMD(PACKAGER/UNPACK) srcstmf('/home/jweirich/builds/ibm-i-packager/src/qcmdsrc/UNPACK.cmd') PGM(PACKAGER/UNPACKC) VLDCKR(*NONE) PMTFILE(*NONE) HLPPNLGRP(*NONE) HLPID(*NONE) AUT() ALLOW()  CURLIB(PACKAGER) PRDLIB()
+>> liblist: QSYS QSYS2 QHLPSYS QUSRSYS QSHELL PACKAGER RPGUNIT QGPL QTEMP CHAMPIONS
+>> executing time: 2026-10-19-12.03.12.00
+
+CPC0202: Command UNPACK created in library PACKAGER.
+ 5770SS1 V7R4M0  190621                 Command Definition        PACKAGER/UNPACK       OPENSRC 07/31/26 12:03:13         Page     1
+ Command name  . . . . . . . . . . . . . . . . :   UNPACK
+   Library . . . . . . . . . . . . . . . . . . :     PACKAGER
+ Command processing program  . . . . . . . . . :   UNPACKC
+   Library . . . . . . . . . . . . . . . . . . :     PACKAGER
+ Source stream file  . . . . . . . . . . . . . :   /home/jweirich/builds/ibm-i-packager/src/qcmdsrc/UNPACK.cmd
+ Last Change   . . . . . . . . . . . . . . . . :   10/18/26 20:31:06
+ Source printing options . . . . . . . . . . . :   *NOEVENTF
+ Validity checker program  . . . . . . . . . . :   *NONE
+ Mode in which valid . . . . . . . . . . . . . :   *PROD
+                                                   *DEBUG
+                                                   *SERVICE
+ Environment allowed . . . . . . . . . . . . . :   *IREXX
+                                                   *BREXX
+                                                   *BPGM
+                                                   *IPGM
+                                                   *EXEC
+                                                   *INTERACT
+                                                   *BATCH
+                                                   *BMOD
+                                                   *IMOD
+ Allow limited user  . . . . . . . . . . . . . :   *NO
+ Max positional parameters . . . . . . . . . . :   *NOMAX
+ Prompt file . . . . . . . . . . . . . . . . . :   *NONE
+ Message file  . . . . . . . . . . . . . . . . :   QCPFMSG
+   Library . . . . . . . . . . . . . . . . . . :     *LIBL
+ Authority . . . . . . . . . . . . . . . . . . :   *LIBCRTAUT
+ Replace command . . . . . . . . . . . . . . . :   *YES
+ Enable graphical user interface . . . . . . . :   *NO
+ Threadsafe  . . . . . . . . . . . . . . . . . :   *NO
+ Multithreaded job action  . . . . . . . . . . :   *SYSVAL
+ Text  . . . . . . . . . . . . . . . . . . . . :   *NONE
+ Help panel group  . . . . . . . . . . . . . . :   *NONE
+ Help identifier . . . . . . . . . . . . . . . :   *NONE
+ Help search index . . . . . . . . . . . . . . :   *NONE
+ Current library . . . . . . . . . . . . . . . :   PACKAGER
+ Product library . . . . . . . . . . . . . . . :   *NOCHG
+ Prompt override program . . . . . . . . . . . :   *NONE
+ Compiler  . . . . . . . . . . . . . . . . . . :   IBM i Command Definition Compiler
+                                     Command Definition Source
+ SEQNBR  *...+... 1 ...+... 2 ...+... 3 ...+... 4 ...+... 5 ...+... 6 ...+... 7 ...+... 8 ...+... 9 ...+.  DATE
+    100-  /* ========================================================================= */
+    200-  /* Command:     #UNPACK                                                      */
+    300-  /* Source File: UNPACK.cmd                                                   */
+    400-  /* CPP:         UNPACKC                                                      */
+    500-  /* Description: Unpackage IBM i CI/CD Save File or IFS package in strict     */
+    600-  /*              object dependency precedence order, supporting library       */
+    700-  /*              mapping by object type/attribute, authority preservation     */
+    800-  /*              from existing objects, PF/Table data migration, and          */
+    900-  /*              rollback backup save files.                                  */
+   1000-  /*                                                                           */
+   1100-  /* Compile:                                                                  */
+   1200-  /*   CRTCMD CMD(&INTO/#UNPACK) PGM(&INTO/UNPACKC) SRCFILE(&SRCLIB/QCMDSRC)   */
+   1300-  /*          SRCMBR(UNPACK) ALLOW(*ALL)                                       */
+ 5770SS1 V7R4M0  190621                 Command Definition        PACKAGER/UNPACK       OPENSRC 07/31/26 12:03:13         Page     2
+ SEQNBR  *...+... 1 ...+... 2 ...+... 3 ...+... 4 ...+... 5 ...+... 6 ...+... 7 ...+... 8 ...+... 9 ...+.  DATE
+   1400-  /* ========================================================================= */
+   1500-               CMD        PROMPT('Unpackage Objects (#UNPACK)')
+   1600-
+   1700-               /* Input package source type: Save File or IFS Stream File */
+   1800-               PARM       KWD(INPTYPE) TYPE(*CHAR) LEN(6) RSTD(*YES) +
+   1900                             DFT(*SAVF) VALUES(*SAVF *STMF) EXPR(*YES) +
+   2000                             PROMPT('Input package type')
+   2100-
+   2200-               /* Input Save File (when INPTYPE = *SAVF) */
+   2300-               PARM       KWD(SAVF) TYPE(SAVFQUAL) +
+   2400                             PMTCTL(PMTSAVF) +
+   2500                             PROMPT('Package save file')
+   2600-
+   2700-               /* Input IFS Stream File (when INPTYPE = *STMF) */
+   2800-               PARM       KWD(STMF) TYPE(*PNAME) LEN(256) DFT(*NONE) +
+   2900                             SPCVAL((*NONE)) EXPR(*YES) +
+   3000                             PMTCTL(PMTSTMF) +
+   3100                             PROMPT('Package IFS stream file')
+   3200-
+   3300-               /* Default Target Library (when not matched in LIBMAP) */
+   3400-               PARM       KWD(DFTLIB) TYPE(*NAME) LEN(10) DFT(*SAVLIB) +
+   3500                             SPCVAL((*SAVLIB)) EXPR(*YES) +
+   3600                             PROMPT('Default target library')
+   3700-
+   3800-               /* Library Map by Object Type and Extended Attribute */
+   3900-               PARM       KWD(LIBMAP) TYPE(MAPELEM) MAX(30) +
+   4000                             DFT(*NONE) SNGVAL((*NONE)) +
+   4100                             PROMPT('Target library map by type')
+   4200-
+   4300-               /* JSON File (IFS) for Library Mapping & File Data Overrides */
+   4400-               PARM       KWD(MAPFILE) TYPE(*PNAME) LEN(256) DFT(*NONE) +
+   4500                             SPCVAL((*NONE)) EXPR(*YES) +
+   4600                             PROMPT('Library map JSON file (IFS)')
+   4700-
+   4800-               /* Preserve existing data in Physical Files / SQL Tables */
+   4900-               PARM       KWD(CPYDTA) TYPE(*CHAR) LEN(4) RSTD(*YES) +
+   5000                             DFT(*YES) VALUES(*YES *NO) EXPR(*YES) +
+   5100                             PROMPT('Preserve PF/Table data')
+   5200-
+   5300-               /* Optional Rollback / Backup Save File for replaced objects */
+   5400-               PARM       KWD(BKPSAVF) TYPE(BKPQUAL) +
+   5500                             PROMPT('Rollback backup save file')
+   5600-
+   5700-               /* HTML Unpack Manifest Report Output Path in IFS */
+   5800-               PARM       KWD(MANIFEST) TYPE(*PNAME) LEN(256) +
+   5900                             DFT(*AUTO) SPCVAL((*AUTO) (*NONE)) +
+   6000                             EXPR(*YES) +
+   6100                             PROMPT('HTML manifest path (IFS)')
+   6200-
+   6300-               /* Qualified Package Save File */
+   6400-   SAVFQUAL:   QUAL       TYPE(*NAME) LEN(10) DFT(PKGSAVF) EXPR(*YES)
+   6500-               QUAL       TYPE(*NAME) LEN(10) DFT(QTEMP) +
+   6600                             SPCVAL((*CURLIB) (QTEMP)) EXPR(*YES) +
+   6700                             PROMPT('Library')
+   6800-
+ 5770SS1 V7R4M0  190621                 Command Definition        PACKAGER/UNPACK       OPENSRC 07/31/26 12:03:13         Page     3
+ SEQNBR  *...+... 1 ...+... 2 ...+... 3 ...+... 4 ...+... 5 ...+... 6 ...+... 7 ...+... 8 ...+... 9 ...+.  DATE
+   6900-               /* Qualified Rollback Backup Save File */
+   7000-   BKPQUAL:    QUAL       TYPE(*NAME) LEN(10) DFT(*NONE) +
+   7100                             SPCVAL((*NONE)) EXPR(*YES)
+   7200-               QUAL       TYPE(*NAME) LEN(10) DFT(QTEMP) +
+   7300                             SPCVAL((*CURLIB) (QTEMP)) EXPR(*YES) +
+   7400                             PROMPT('Library')
+   7500-
+   7600-               /* Library Mapping Element: (ObjType, ExtendedAttr, TargetLib) */
+   7700-   MAPELEM:    ELEM       TYPE(*CHAR) LEN(10) RSTD(*YES) +
+   7800                             VALUES(*ALL *PGM *SRVPGM *MODULE *FILE +
+   7900                                    *SQLPKG *BNDDIR *DTAARA *DTAQ +
+   8000                                    *MSGF *CMD *PNLGRP *MENU *JOBD +
+   8100                                    *CLS *SBSD *OUTQ *WSCST *AUTL) +
+   8200                             EXPR(*YES) +
+   8300                             PROMPT('Object type')
+* CPD0267  10  CHOICE(*VALUES) specified, but not all values fit.
+   8400-               ELEM       TYPE(*CHAR) LEN(10) DFT(*ALL) +
+   8500                             SPCVAL((*ALL)) EXPR(*YES) +
+   8600                             PROMPT('Object attribute (PF,LF,TB)')
+   8700-               ELEM       TYPE(*NAME) LEN(10) MIN(1) EXPR(*YES) +
+   8800                             PROMPT('Target library')
+   8900-
+   9000-               /* Prompt Controls */
+   9100-   PMTSAVF:    PMTCTL     CTL(INPTYPE) COND((*EQ '*SAVF'))
+   9200-   PMTSTMF:    PMTCTL     CTL(INPTYPE) COND((*EQ '*STMF'))
+   9300-
+   9400-               /* Cross-parameter Dependency Checks */
+   9500-               DEP        CTL(&INPTYPE *EQ '*STMF') +
+   9600                             PARM((&STMF *NE '*NONE')) +
+   9700                             MSGID(CPD0006)
+                                         * * * * *   E N D   O F   S  O U R C E   * * * * *
+ 5770SS1 V7R4M0  190621                 Command Definition        PACKAGER/UNPACK       OPENSRC 07/31/26 12:03:13         Page     4
+                                          Cross Reference
+ Defined Keywords
+ Keyword              Number          Defined      References
+ BKPSAVF                008              5400
+ CPYDTA                 007              4900
+ DFTLIB                 004              3400
+ INPTYPE                001              1800         9100   9200   9500
+ LIBMAP                 005              3900
+ MANIFEST               009              5800
+ MAPFILE                006              4400
+ SAVF                   002              2300
+ STMF                   003              2800         9500
+ Defined Labels
+ Label                                Defined      References
+ BKPQUAL                                 7000         5400
+ MAPELEM                                 7700         3900
+ PMTSAVF                                 9100         2300
+ PMTSTMF                                 9200         2800
+ SAVFQUAL                                6400         2300
+                               * * * * *   E N D   O F   C R O S S   R E F E R E N C E   * * * * *
+ 5770SS1 V7R4M0  190621                 Command Definition        PACKAGER/UNPACK       OPENSRC 07/31/26 12:03:13         Page     5
+                                          Final Messages
+ Message               Sequence
+ ID                     Number          Sev        Text
+* CPD4090                1001M           10        Printer device PRT01 not found. Output queue changed to QPRINT in library QGPL.
+* CPD0250                 7700           20        Default value of ' ' assumed for DFT parameter.
+* CPD0252                 7700           20        Default value for DFT parameter not one of restricted values.
+* CPD0285                 8700           10        Required ELEM following optional ELEM not allowed. Optional ELEM assumed.
+* CPD0250                 8700           20        Default value of ' ' assumed for DFT parameter.
+* CPD0251                 8700           20        Default value for DFT parameter not correct type or length for this parameter.
+                                          Message Summary
+ Total         Info        Error
+     6             6           0
+* CPC0202                                00        Command UNPACK created in library PACKAGER.
+                                   * * * * *   E N D   O F   C O M P I L A T I O N   * * * * *
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+

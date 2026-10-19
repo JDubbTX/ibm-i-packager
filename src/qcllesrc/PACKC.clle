@@ -1,0 +1,136 @@
+/* ========================================================================= */
+/* Program:     PACKC                                                        */
+/* Source File: PACKC.clle                                                   */
+/* Description: Command Processing Program (CPP) for #PACK command.          */
+/*              Prepares target or staging Save File, invokes SQLRPGLE       */
+/*              engine PACKR to stamp USRDFNATR and save objects, and        */
+/*              exports to IFS stream file when OUTTYPE(*STMF).              */
+/* ========================================================================= */
+             PGM        PARM(&SRCLIB &OBJLST &TYPLST &VERSION +
+                          &OUTTYPE &SAVFQUAL &STMF &TGTRLS &CLEAR +
+                          &MANIFEST)
+
+             /* Command Parameters */
+             DCL        VAR(&SRCLIB)   TYPE(*CHAR) LEN(10)
+             DCL        VAR(&OBJLST)   TYPE(*CHAR) LEN(502)
+             DCL        VAR(&TYPLST)   TYPE(*CHAR) LEN(202)
+             DCL        VAR(&VERSION)  TYPE(*CHAR) LEN(10)
+             DCL        VAR(&OUTTYPE)  TYPE(*CHAR) LEN(6)
+             DCL        VAR(&SAVFQUAL) TYPE(*CHAR) LEN(20)
+             DCL        VAR(&STMF)     TYPE(*CHAR) LEN(256)
+             DCL        VAR(&TGTRLS)   TYPE(*CHAR) LEN(10)
+             DCL        VAR(&CLEAR)    TYPE(*CHAR) LEN(4)
+             DCL        VAR(&MANIFEST) TYPE(*CHAR) LEN(256)
+
+             /* Working Variables */
+             DCL        VAR(&SAVFNAME) TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SAVFLIB)  TYPE(*CHAR) LEN(10)
+             DCL        VAR(&WRKSAVF)  TYPE(*CHAR) LEN(10)
+             DCL        VAR(&WRKLIB)   TYPE(*CHAR) LEN(10)
+             DCL        VAR(&FULLSTMF) TYPE(*CHAR) LEN(256)
+             DCL        VAR(&FULLMNFT) TYPE(*CHAR) LEN(256)
+             DCL        VAR(&FROMMBR)  TYPE(*CHAR) LEN(64)
+             DCL        VAR(&STMFOPT)  TYPE(*CHAR) LEN(10)
+             DCL        VAR(&TXTDSC)   TYPE(*CHAR) LEN(50)
+             DCL        VAR(&RTNCDE)   TYPE(*CHAR) LEN(1)  VALUE('0')
+             DCL        VAR(&MSGID)    TYPE(*CHAR) LEN(7)
+             DCL        VAR(&MSGDTA)   TYPE(*CHAR) LEN(256)
+
+             /* Global Error Trap */
+             MONMSG     MSGID(CPF0000) EXEC(GOTO CMDLBL(ERROR))
+
+             /* 1. Verify Source Library Exists */
+             CHKOBJ     OBJ(QSYS/&SRCLIB) OBJTYPE(*LIB)
+
+             /* 2. Determine Working Save File */
+             IF         COND(&OUTTYPE *EQ '*SAVF') THEN(DO)
+                CHGVAR     VAR(&SAVFNAME) VALUE(%SST(&SAVFQUAL 1 10))
+                CHGVAR     VAR(&SAVFLIB)  VALUE(%SST(&SAVFQUAL 11 10))
+                IF         COND(&SAVFLIB *EQ '*CURLIB') THEN(DO)
+                   RTVJOBA    CURLIB(&SAVFLIB)
+                   IF         COND(&SAVFLIB *EQ '*NONE') THEN( +
+                      CHGVAR VAR(&SAVFLIB) VALUE('QGPL'))
+                ENDDO
+                CHGVAR     VAR(&WRKSAVF) VALUE(&SAVFNAME)
+                CHGVAR     VAR(&WRKLIB)  VALUE(&SAVFLIB)
+             ENDDO
+             ELSE       CMD(DO)
+                /* Stage in QTEMP/PKGSAVF before copying to IFS */
+                CHGVAR     VAR(&WRKSAVF) VALUE('PKGSAVF')
+                CHGVAR     VAR(&WRKLIB)  VALUE('QTEMP')
+             ENDDO
+
+             /* 3. Create or Clear Working Save File */
+             CHGVAR     VAR(&TXTDSC) VALUE('CI/CD Package ' *CAT +
+                          &SRCLIB *BCAT 'Ver:' *BCAT &VERSION)
+
+             CHKOBJ     OBJ(&WRKLIB/&WRKSAVF) OBJTYPE(*FILE)
+             MONMSG     MSGID(CPF9801) EXEC(DO)
+                CRTSAVF    FILE(&WRKLIB/&WRKSAVF) TEXT(&TXTDSC) +
+                             AUT(*ALL)
+             ENDDO
+
+             IF         COND(&CLEAR *EQ '*YES' *OR +
+                             &OUTTYPE *EQ '*STMF') THEN(DO)
+                CLRSAVF    FILE(&WRKLIB/&WRKSAVF)
+             ENDDO
+
+             CHGOBJD    OBJ(&WRKLIB/&WRKSAVF) OBJTYPE(*FILE) +
+                          TEXT(&TXTDSC)
+
+             /* 4. Call SQLRPGLE Packaging Engine (PACKR) */
+             CALL       PGM(PACKR) PARM(&SRCLIB &OBJLST &TYPLST +
+                          &VERSION &OUTTYPE &WRKSAVF &WRKLIB +
+                          &STMF &TGTRLS &CLEAR &MANIFEST &FULLSTMF +
+                          &FULLMNFT &RTNCDE)
+
+             IF         COND(&RTNCDE *NE '0') THEN(DO)
+                SNDPGMMSG  MSGID(CPF9898) MSGF(QCPFMSG) +
+                             MSGDTA('#PACK failed during object +
+                             stamping or save processing. Check job +
+                             log for details.') MSGTYPE(*ESCAPE)
+             ENDDO
+
+             /* 5. If Output Type is *STMF, export Save File to IFS */
+             IF         COND(&OUTTYPE *EQ '*STMF') THEN(DO)
+                CHGVAR     VAR(&FROMMBR) VALUE('/QSYS.LIB/' *CAT +
+                             %TRIM(&WRKLIB) *CAT '.LIB/' *CAT +
+                             %TRIM(&WRKSAVF) *CAT '.FILE')
+
+                IF         COND(&CLEAR *EQ '*YES') THEN( +
+                   CHGVAR VAR(&STMFOPT) VALUE('*REPLACE'))
+                ELSE       CMD( +
+                   CHGVAR VAR(&STMFOPT) VALUE('*NONE'))
+
+                CPYTOSTMF  FROMMBR(&FROMMBR) TOSTMF(&FULLSTMF) +
+                             STMFOPT(&STMFOPT) CVTDTA(*NONE) +
+                             ENDLINFMT(*FIXED)
+
+                /* Clean up staging save file in QTEMP */
+                DLTF       FILE(QTEMP/PKGSAVF)
+                MONMSG     MSGID(CPF0000)
+
+                SNDPGMMSG  MSGID(CPF9897) MSGF(QCPFMSG) +
+                             MSGDTA('Package version ' *CAT &VERSION +
+                             *BCAT 'created at IFS path: ' *CAT +
+                             %TRIM(&FULLSTMF)) MSGTYPE(*COMP)
+             ENDDO
+             ELSE       CMD(DO)
+                SNDPGMMSG  MSGID(CPF9897) MSGF(QCPFMSG) +
+                             MSGDTA('Package version ' *CAT &VERSION +
+                             *BCAT 'saved to ' *CAT %TRIM(&WRKLIB) +
+                             *CAT '/' *CAT %TRIM(&WRKSAVF)) +
+                             MSGTYPE(*COMP)
+             ENDDO
+
+             RETURN
+
+ ERROR:      RCVMSG     MSGTYPE(*EXCP) MSGDTA(&MSGDTA) MSGID(&MSGID)
+             IF         COND(&MSGID *EQ ' ') THEN( +
+                SNDPGMMSG MSGID(CPF9898) MSGF(QCPFMSG) +
+                          MSGDTA('Unexpected error in #PACK command') +
+                          MSGTYPE(*ESCAPE))
+             ELSE       CMD( +
+                SNDPGMMSG MSGID(&MSGID) MSGF(QCPFMSG) +
+                          MSGDTA(&MSGDTA) MSGTYPE(*ESCAPE))
+             ENDPGM

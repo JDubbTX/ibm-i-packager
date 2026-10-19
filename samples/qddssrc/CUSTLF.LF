@@ -1,0 +1,8 @@
+     A*=====================================================================
+     A* Sample DDS Logical File: CUSTLF (Active Customers by Name)
+     A* Built with IBM i TOBi (makei) -> *FILE (LF) - Precedence Tier 35
+     A*=====================================================================
+     A          R CUSTR                     PFILE(CUSTPF)
+     A          K CUSTNAME
+     A          K CUSTID
+     A          S CUSTSTAT                  COMP(EQ 'A')

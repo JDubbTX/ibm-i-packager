@@ -1,0 +1,14 @@
+**FREE
+// ============================================================================
+// Sample Prototype Copybook: TAXPROTO.RPGLEINC
+// Exports from Service Program TAXSRV (*SRVPGM)
+// ============================================================================
+/IF DEFINED(TAXPROTO_INC)
+/EOF
+/ENDIF
+/DEFINE TAXPROTO_INC
+
+dcl-pr CalcOrderTax packed(11:2) extproc(*dclcase);
+  subtotal   packed(11:2) value;
+  stateCode  char(2)      const;
+end-pr;

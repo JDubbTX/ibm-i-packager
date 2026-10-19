@@ -1,0 +1,15 @@
+     A*=====================================================================
+     A* Sample DDS Printer File: ORDPRTF (Customer Order Summary Report)
+     A* Built with IBM i TOBi (makei) -> *FILE (PRTF) - Precedence Tier 40
+     A*=====================================================================
+     A          R RPTHEAD                   SKIPB(2)
+     A                                     2'IBM i CI/CD PACKAGER - CUSTOMER +
+     A                                      ORDER REPORT'
+     A                                    65'Page:'
+     A                                    71PAGNBR EDTCDE(Z)
+     A                                      SPACEA(2)
+     A          R RPTDTL                    SPACEA(1)
+     A            CUSTID         8S 0      2EDTCDE(Z)
+     A            CUSTNAME      40A       12
+     A            CUSTSTATE      2A       54
+     A            CUSTBAL       11S 2     58EDTCDE(J)

@@ -1,0 +1,28 @@
+-- ============================================================================
+-- Sample SQL DDL View: ORDVW (Customer Orders Summary View)
+-- Built with IBM i TOBi (makei) -> *FILE (LF SQL View) - Tier 35
+-- ============================================================================
+CREATE OR REPLACE VIEW ORDVW (
+  ORDER_ID       FOR COLUMN VWORDID,
+  CUSTOMER_ID    FOR COLUMN VWCUSTID,
+  CUSTOMER_NAME  FOR COLUMN VWCUSTNM,
+  CUSTOMER_STATE FOR COLUMN VWCUSTST,
+  ORDER_DATE     FOR COLUMN VWORDDT,
+  SUBTOTAL_AMT   FOR COLUMN VWSUBAMT,
+  TAX_AMT        FOR COLUMN VWTAXAMT,
+  TOTAL_AMT      FOR COLUMN VWTOTAMT
+) AS
+SELECT
+  O.ORDID,
+  O.ORDCUST,
+  C.CUSTNAME,
+  C.CUSTSTATE,
+  O.ORDDATE,
+  O.ORDSUB,
+  O.ORDTAX,
+  O.ORDTOT
+FROM ORDHDR O
+INNER JOIN CUSTPF C
+  ON O.ORDCUST = C.CUSTID;
+
+LABEL ON TABLE ORDVW IS 'Customer Order Summary SQL View';
