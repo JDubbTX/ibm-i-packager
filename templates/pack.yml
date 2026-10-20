@@ -76,42 +76,41 @@ spec:
   stage: $[[ inputs.stage ]]
   image: $[[ inputs.image ]]
   before_script:
-    - apk add --no-cache openssh-client sshpass bash
+    - apk add --no-cache openssh-client bash
     - |
-      if [ -z "${IBMI_HOST:-}" ] || [ -z "${IBMI_USER:-}" ]; then
-        echo "ERROR: IBMI_HOST and IBMI_USER must be configured in GitLab CI/CD Variables."
+      if [ -z "${IBMI_ADDRESS:-}" ] || [ -z "${IBMI_USERID:-}" ]; then
+        echo "ERROR: IBMI_ADDRESS and IBMI_USERID must be configured in GitLab CI/CD Variables."
         exit 1
       fi
-      IBMI_SSH_PORT="${IBMI_PORT:-22}"
+      if [ -z "${SSH_PRIVATE_KEY:-}" ] || [ -z "${SSH_KNOWN_HOSTS:-}" ]; then
+        echo "ERROR: SSH_PRIVATE_KEY and SSH_KNOWN_HOSTS must be configured in GitLab CI/CD Variables."
+        exit 1
+      fi
+      IBMI_SSH_PORT="${IBMI_SSH_PORT:-22}"
       mkdir -p ~/.ssh
       chmod 700 ~/.ssh
+      if [ -f "$SSH_KNOWN_HOSTS" ]; then
+        cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
+      else
+        printf "%s\n" "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      fi
+      chmod 600 ~/.ssh/known_hosts
+      eval "$(ssh-agent -s)"
+      bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)'
       cat <<EOF > ~/.ssh/config
       Host ibmi-target
-        HostName ${IBMI_HOST}
-        User ${IBMI_USER}
+        HostName ${IBMI_ADDRESS}
+        User ${IBMI_USERID}
         Port ${IBMI_SSH_PORT}
-        StrictHostKeyChecking no
-        UserKnownHostsFile /dev/null
+        StrictHostKeyChecking yes
+        UserKnownHostsFile ~/.ssh/known_hosts
         ConnectTimeout 15
         ServerAliveInterval 15
         ServerAliveCountMax 4
       EOF
       chmod 600 ~/.ssh/config
-
-      if [ -n "${IBMI_SSH_PRIVATE_KEY:-}" ]; then
-        printf "%s\n" "${IBMI_SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/id_ibmi
-        chmod 600 ~/.ssh/id_ibmi
-        echo "  IdentityFile ~/.ssh/id_ibmi" >> ~/.ssh/config
-        SSH_CMD="ssh ibmi-target"
-        SCP_CMD="scp -P ${IBMI_SSH_PORT} -i ~/.ssh/id_ibmi -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-      elif [ -n "${IBMI_PASSWORD:-}" ]; then
-        export SSHPASS="${IBMI_PASSWORD}"
-        SSH_CMD="sshpass -e ssh ibmi-target"
-        SCP_CMD="sshpass -e scp -P ${IBMI_SSH_PORT} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-      else
-        echo "ERROR: Either IBMI_SSH_PRIVATE_KEY or IBMI_PASSWORD must be set in GitLab CI/CD Variables."
-        exit 1
-      fi
+      SSH_CMD="ssh ibmi-target"
+      SCP_CMD="scp"
 
       run_ssh() {
         local attempt
@@ -130,7 +129,7 @@ spec:
         local dst="$2"
         local attempt
         for attempt in 1 2 3 4 5; do
-          if $SCP_CMD -r "${IBMI_USER}@${IBMI_HOST}:${src}" "$dst"; then
+          if $SCP_CMD -r "ibmi-target:${src}" "$dst"; then
             return 0
           fi
           echo "SCP download attempt ${attempt} failed, retrying in 3s..." >&2
@@ -199,7 +198,7 @@ spec:
               print('  [JOBLOG]', row[0], row[1], row[2], '|', str(row[3])[:140])
           sys.exit(1)
       \""
-    - echo "=== Downloading package artifacts from ${IBMI_HOST}:${REMOTE_WORK_DIR} ==="
+    - echo "=== Downloading package artifacts from ${IBMI_ADDRESS}:${REMOTE_WORK_DIR} ==="
     - run_scp_from "${REMOTE_WORK_DIR}/." "${CI_PROJECT_DIR}/$[[ inputs.artifact_dir ]]/"
     - run_ssh "rm -rf '${REMOTE_WORK_DIR}'" || true
     - ls -lh "${CI_PROJECT_DIR}/$[[ inputs.artifact_dir ]]/"
@@ -208,4 +207,3 @@ spec:
     paths:
       - $[[ inputs.artifact_dir ]]/
     expire_in: $[[ inputs.artifact_expire_in ]]
-

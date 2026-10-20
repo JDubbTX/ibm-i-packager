@@ -61,43 +61,42 @@ spec:
 .ibmi_cicd_ssh_base: &ibmi_cicd_ssh_base
   image: $[[ inputs.image ]]
   before_script:
-    - apk add --no-cache openssh-client sshpass tar bash
+    - apk add --no-cache openssh-client tar bash
     - |
-      if [ -z "${IBMI_HOST:-}" ] || [ -z "${IBMI_USER:-}" ]; then
-        echo "ERROR: IBMI_HOST and IBMI_USER must be configured in GitLab CI/CD Variables."
+      if [ -z "${IBMI_ADDRESS:-}" ] || [ -z "${IBMI_USERID:-}" ]; then
+        echo "ERROR: IBMI_ADDRESS and IBMI_USERID must be configured in GitLab CI/CD Variables."
         exit 1
       fi
-      IBMI_SSH_PORT="${IBMI_PORT:-22}"
-      export REMOTE_DIR="${IBMI_BUILD_DIR:-/home/${IBMI_USER}/builds/${CI_PROJECT_NAME}}"
+      if [ -z "${SSH_PRIVATE_KEY:-}" ] || [ -z "${SSH_KNOWN_HOSTS:-}" ]; then
+        echo "ERROR: SSH_PRIVATE_KEY and SSH_KNOWN_HOSTS must be configured in GitLab CI/CD Variables."
+        exit 1
+      fi
+      IBMI_SSH_PORT="${IBMI_SSH_PORT:-22}"
+      export REMOTE_DIR="${BUILD_DIR:-/home/${IBMI_USERID}/builds/${CI_PROJECT_NAME}}"
       mkdir -p ~/.ssh
       chmod 700 ~/.ssh
+      if [ -f "$SSH_KNOWN_HOSTS" ]; then
+        cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
+      else
+        printf "%s\n" "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      fi
+      chmod 600 ~/.ssh/known_hosts
+      eval "$(ssh-agent -s)"
+      bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)'
       cat <<EOF > ~/.ssh/config
       Host ibmi-target
-        HostName ${IBMI_HOST}
-        User ${IBMI_USER}
+        HostName ${IBMI_ADDRESS}
+        User ${IBMI_USERID}
         Port ${IBMI_SSH_PORT}
-        StrictHostKeyChecking no
-        UserKnownHostsFile /dev/null
+        StrictHostKeyChecking yes
+        UserKnownHostsFile ~/.ssh/known_hosts
         ConnectTimeout 15
         ServerAliveInterval 15
         ServerAliveCountMax 4
       EOF
       chmod 600 ~/.ssh/config
-
-      if [ -n "${IBMI_SSH_PRIVATE_KEY:-}" ]; then
-        printf "%s\n" "${IBMI_SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/id_ibmi
-        chmod 600 ~/.ssh/id_ibmi
-        echo "  IdentityFile ~/.ssh/id_ibmi" >> ~/.ssh/config
-        SSH_CMD="ssh ibmi-target"
-        SCP_CMD="scp -P ${IBMI_SSH_PORT} -i ~/.ssh/id_ibmi -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-      elif [ -n "${IBMI_PASSWORD:-}" ]; then
-        export SSHPASS="${IBMI_PASSWORD}"
-        SSH_CMD="sshpass -e ssh ibmi-target"
-        SCP_CMD="sshpass -e scp -P ${IBMI_SSH_PORT} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
-      else
-        echo "ERROR: Either IBMI_SSH_PRIVATE_KEY or IBMI_PASSWORD must be set in GitLab CI/CD Variables."
-        exit 1
-      fi
+      SSH_CMD="ssh ibmi-target"
+      SCP_CMD="scp"
 
       run_ssh() {
         local attempt
@@ -116,7 +115,7 @@ spec:
         local dst="$2"
         local attempt
         for attempt in 1 2 3 4 5; do
-          if $SCP_CMD "$src" "${IBMI_USER}@${IBMI_HOST}:${dst}"; then
+          if $SCP_CMD "$src" "ibmi-target:${dst}"; then
             return 0
           fi
           echo "SCP upload attempt ${attempt} failed, retrying in 3s..." >&2
@@ -130,7 +129,7 @@ spec:
         local dst="$2"
         local attempt
         for attempt in 1 2 3 4 5; do
-          if $SCP_CMD -r "${IBMI_USER}@${IBMI_HOST}:${src}" "$dst"; then
+          if $SCP_CMD -r "ibmi-target:${src}" "$dst"; then
             return 0
           fi
           echo "SCP download attempt ${attempt} failed, retrying in 3s..." >&2
@@ -143,7 +142,7 @@ ibmi:build:
   <<: *ibmi_cicd_ssh_base
   stage: $[[ inputs.build_stage ]]
   script:
-    - echo "=== Archiving project sources for upload to ${IBMI_HOST}:${REMOTE_DIR} ==="
+    - echo "=== Archiving project sources for upload to ${IBMI_ADDRESS}:${REMOTE_DIR} ==="
     - tar --exclude='.git' --exclude='artifacts' --exclude='build-logs' -czf /tmp/pkg_sync.tar.gz .
     - run_ssh "mkdir -p '${REMOTE_DIR}'"
     - run_scp_to /tmp/pkg_sync.tar.gz "${REMOTE_DIR}/pkg_sync.tar.gz"
@@ -205,7 +204,7 @@ ibmi:test:
         echo "Skipping iRPGUnit tests (test_src=*NONE)."
         exit 0
       fi
-      echo "=== Compiling and running iRPGUnit suite $[[ inputs.build_lib ]]/$[[ inputs.test_pgm ]] on ${IBMI_HOST} ==="
+      echo "=== Compiling and running iRPGUnit suite $[[ inputs.build_lib ]]/$[[ inputs.test_pgm ]] on ${IBMI_ADDRESS} ==="
       run_ssh "export PATH=/QOpenSys/pkgs/bin:\$PATH && \
         cd '${REMOTE_DIR}' && \
         rm -f '${REMOTE_DIR}/rpgunit-results.xml' && \
@@ -287,4 +286,3 @@ include:
       target_release: $[[ inputs.target_release ]]
       packager_lib: $[[ inputs.packager_lib ]]
       artifact_dir: $[[ inputs.artifact_dir ]]
-

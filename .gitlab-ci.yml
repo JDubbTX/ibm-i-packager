@@ -9,10 +9,9 @@
 # And publishes semantic version tag releases (e.g. 1.0.0) to the
 # GitLab CI/CD Catalog via the release stage.
 #
-# Required GitLab CI/CD Variables (Settings -> CI/CD -> Variables):
-#   - IBMI_HOST            : IBM i hostname or IP (e.g., opensrc.rzkh.de)
-#   - IBMI_USER            : IBM i SSH user profile (e.g., jweirich)
-#   - IBMI_SSH_PRIVATE_KEY : SSH private key for IBMI_USER (or set IBMI_PASSWORD)
+# Required GitLab group CI/CD variables:
+#   - IBMI_ADDRESS, IBMI_USERID, SSH_PRIVATE_KEY, SSH_KNOWN_HOSTS
+#   - OBJECT_LIB (IBM i library), with optional IBMI_SSH_PORT and BUILD_DIR
 # ==============================================================================
 
 stages:
@@ -29,14 +28,14 @@ include:
       build_stage: build
       test_stage: test
       package_stage: package
-      build_lib: "PACKAGER"
+      build_lib: "$OBJECT_LIB"
       rpgunit_lib: "RPGUNIT"
       test_src: "test/qrpglesrc/pkgtest.test.sqlrpgle"
       test_pgm: "TPKGTEST"
       objects: "PACK* UNPACK* #PACK #UNPACK"
       object_types: "*PGM *CMD"
       version: "$CI_COMMIT_SHORT_SHA"
-      packager_lib: "PACKAGER"
+      packager_lib: "$OBJECT_LIB"
       artifact_dir: "artifacts"
 
   # 2. Dogfood the standalone #PACK component on the sample multi-tier application
@@ -44,13 +43,13 @@ include:
     inputs:
       job_name: "ibmi:pack-samples"
       stage: package
-      src_lib: "PACKAGER"
+      src_lib: "$OBJECT_LIB"
       objects: "APPCFG APPMSGF CUSTPF ORDHDR CUSTLF ORDVW CUSTDSPF ORDPRTF ORDHLP TAXMOD APPBND TAXSRV ORDPGM CUSTRPT UTLCLP ORDCL ORDENT"
       object_types: "*ALL"
       version: "$CI_COMMIT_SHORT_SHA"
       stmf_name: "samples-package.savf"
       manifest_name: "samples-pack-manifest.html"
-      packager_lib: "PACKAGER"
+      packager_lib: "$OBJECT_LIB"
       artifact_dir: "artifacts-samples"
 
   # 3. Dogfood the standalone #UNPACK component (manual deploy job or verification)
@@ -61,10 +60,10 @@ include:
       environment: "staging"
       inp_type: "*STMF"
       stmf_artifact: "artifacts-samples/samples-package.savf"
-      default_lib: "PACKAGER"
+      default_lib: "$OBJECT_LIB"
       copy_data: "*YES"
       manifest_name: "samples-unpack-manifest.html"
-      packager_lib: "PACKAGER"
+      packager_lib: "$OBJECT_LIB"
       artifact_dir: "artifacts-samples"
       when: "manual"
 

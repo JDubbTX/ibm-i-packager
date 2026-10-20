@@ -371,17 +371,19 @@ All components execute on standard **GitLab Linux runners** (`alpine:3.20`) and 
 
 ### Prerequisite GitLab CI/CD Variables
 
-In any consuming GitLab project, configure the following variables under **Settings $\rightarrow$ CI/CD $\rightarrow$ Variables**:
+The components use the following variables:
 
 | Variable | Required? | Default | Description |
 | :--- | :---: | :--- | :--- |
-| **`IBMI_HOST`** | **Yes** | — | Hostname or IP address of the target IBM i system. |
-| **`IBMI_USER`** | **Yes** | — | IBM i SSH user profile. |
-| **`IBMI_SSH_PRIVATE_KEY`** | **Yes*** | — | SSH private key for `IBMI_USER` (*or* set `IBMI_PASSWORD`). Mark as **Masked**. |
-| **`IBMI_PASSWORD`** | *Fallback* | — | SSH password for `IBMI_USER` if `IBMI_SSH_PRIVATE_KEY` is not used. Mark as **Masked**. |
-| **`IBMI_PORT`** | No | `22` | SSH port on the IBM i host. |
-| **`IBMI_BUILD_DIR`** | No | `/home/$IBMI_USER/builds/$CI_PROJECT_NAME` | Remote IFS directory where sources are synced and built (used by `ibmi-cicd`). |
-| **`TOBI_DIR`** | No | `/home/$IBMI_USER/projects/ibmi-tobi` | Path to TOBi (`makei`) on the IBM i host if `makei` is not installed globally in `/QOpenSys/pkgs/bin`. |
+| **`IBMI_ADDRESS`** | **Yes** | — | Hostname or IP address of the target IBM i system. |
+| **`IBMI_USERID`** | **Yes** | — | IBM i SSH user profile. |
+| **`SSH_PRIVATE_KEY`** | **Yes** | — | Base64-encoded SSH private key for `IBMI_USERID`, stored as a masked variable and loaded into `ssh-agent` after decoding. |
+| **`SSH_KNOWN_HOSTS`** | **Yes** | — | OpenSSH `known_hosts` entries for the target; accepts variable contents or a GitLab file-type variable. Host-key checking is enforced. |
+| **`IBMI_SSH_PORT`** | No | `22` | SSH port on the IBM i host. |
+| **`BUILD_DIR`** | No | `/home/$IBMI_USERID/builds/$CI_PROJECT_NAME` | Remote IFS directory where sources are synced and built (used by `ibmi-cicd`). |
+| **`OBJECT_LIB`** | **Yes** | — | IBM i library used by this project's build, package, and deployment jobs. |
+| **`ACCESS_TOKEN`** | No | — | Not consumed by the components in this repository. |
+| **`TOBI_DIR`** | No | `/home/$IBMI_USERID/projects/ibmi-tobi` | Path to TOBi (`makei`) on the IBM i host if `makei` is not installed globally in `/QOpenSys/pkgs/bin`. |
 
 ---
 
