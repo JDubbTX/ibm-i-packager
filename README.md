@@ -537,12 +537,13 @@ To list this project in the **GitLab.com CI/CD Catalog** (`Explore -> CI/CD Cata
    - Go to **Settings $\rightarrow$ General $\rightarrow$ Visibility, project features, permissions**.
    - Turn on the **CI/CD Catalog project** toggle and click **Save changes**.
 3. **Create a Semantic Version Tag**:
-   - Push a semantic version tag (e.g., `1.0.0`):
+   - Push a semantic version tag without a `v` prefix (e.g., `1.0.0`, not `v1.0.0`):
      ```bash
      git tag -a 1.0.0 -m "Initial GitLab CI/CD Catalog release"
      git push origin 1.0.0
      ```
-   - The `create-catalog-release` job in [`.gitlab-ci.yml`](.gitlab-ci.yml) runs `release-cli` after the component tests pass and automatically publishes version `1.0.0` to the **GitLab CI/CD Catalog**.
+   - The `create-catalog-release` job in [`.gitlab-ci.yml`](.gitlab-ci.yml) uses the `release` keyword (via the `glab` CLI image) after the build, iRPGUnit tests, and `#PACK` jobs pass, and publishes version `1.0.0` to the **GitLab CI/CD Catalog**. Releases created manually in the GitLab UI are **not** published to the Catalog.
+   - Until the first tag pipeline succeeds, the project's **Releases** page shows *"There was a problem fetching the CI/CD Catalog releases"*; this clears after the first published release.
 
 ---
 
