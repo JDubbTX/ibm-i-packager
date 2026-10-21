@@ -155,7 +155,7 @@ spec:
     - |
       run_ssh "export PATH=/QOpenSys/pkgs/bin:\$PATH && \
         mkdir -p '${REMOTE_WORK_DIR}' && \
-        PY_BIN=\$(for py in /QOpenSys/pkgs/bin/python3*; do \$py -c 'import ibm_db_dbi' 2>/dev/null && echo \$py && break; done) && \
+        PY_BIN=\$(for py in /QOpenSys/pkgs/bin/python3*; do \$py -c 'import ibm_db_dbi' >/dev/null 2>&1 && echo \$py && break; done) && \
         \$PY_BIN -c \"
       import sys
       import ibm_db_dbi

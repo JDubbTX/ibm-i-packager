@@ -170,7 +170,7 @@ ibmi:build:
         if command -v makei >/dev/null 2>&1; then \
           makei build; \
         else \
-          PY_BIN=\$(for py in /QOpenSys/pkgs/bin/python3*; do \$py -c 'import ibm_db_dbi' 2>/dev/null && echo \$py && break; done); \
+          PY_BIN=\$(for py in /QOpenSys/pkgs/bin/python3*; do \$py -c 'import ibm_db_dbi' >/dev/null 2>&1 && echo \$py && break; done); \
           TOBI_ENTRY=\"\${TOBI_DIR:-/home/\${USER}/projects/ibmi-tobi}/src/makei/cli/makei_entry.py\"; \
           if [ -n \"\$PY_BIN\" ] && [ -f \"\$TOBI_ENTRY\" ]; then \
             \$PY_BIN \"\$TOBI_ENTRY\" build || [ ! -s .logs/failed.log ]; \
@@ -178,7 +178,7 @@ ibmi:build:
             gmake BIN_LIB='$[[ inputs.build_lib ]]'; \
           fi; \
         fi && \
-        PY_BIN=\$(for py in /QOpenSys/pkgs/bin/python3*; do \$py -c 'import ibm_db_dbi' 2>/dev/null && echo \$py && break; done) && \
+        PY_BIN=\$(for py in /QOpenSys/pkgs/bin/python3*; do \$py -c 'import ibm_db_dbi' >/dev/null 2>&1 && echo \$py && break; done) && \
         \$PY_BIN -c \"
       import ibm_db_dbi
       conn = ibm_db_dbi.connect()
@@ -220,7 +220,7 @@ ibmi:test:
       run_ssh "export PATH=/QOpenSys/pkgs/bin:\$PATH && \
         cd '${REMOTE_DIR}' && \
         rm -f '${REMOTE_DIR}/rpgunit-results.xml' && \
-        PY_BIN=\$(for py in /QOpenSys/pkgs/bin/python3*; do \$py -c 'import ibm_db_dbi' 2>/dev/null && echo \$py && break; done) && \
+        PY_BIN=\$(for py in /QOpenSys/pkgs/bin/python3*; do \$py -c 'import ibm_db_dbi' >/dev/null 2>&1 && echo \$py && break; done) && \
         \$PY_BIN -c \"
       import sys
       import ibm_db_dbi
