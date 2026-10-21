@@ -1,6 +1,6 @@
 /* ========================================================================= */
 /* Program:     PACKC                                                        */
-/* Source File: PACKC.clle                                                   */
+/* Source File: PACKC.pgm.clle                                               */
 /* Description: Command Processing Program (CPP) for #PACK command.          */
 /*              Prepares target or staging Save File, invokes SQLRPGLE       */
 /*              engine PACKR to stamp USRDFNATR and save objects, and        */
@@ -9,6 +9,8 @@
              PGM        PARM(&SRCLIB &OBJLST &TYPLST &VERSION +
                           &OUTTYPE &SAVFQUAL &STMF &TGTRLS &CLEAR +
                           &MANIFEST)
+
+             DCLPRCOPT  DFTACTGRP(*NO) ACTGRP(*NEW)
 
              /* Command Parameters */
              DCL        VAR(&SRCLIB)   TYPE(*CHAR) LEN(10)

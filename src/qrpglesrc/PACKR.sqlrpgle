@@ -16,7 +16,7 @@ ctl-opt dftactgrp(*no) actgrp(*caller) option(*srcstmt:*nodebugio);
 /include 'PKGTYPES.rpgleinc'
 
 // ----------------------------------------------------------------------------
-// Program Entry Parameters (from PACKC.clle)
+// Program Entry Parameters (from PACKC.pgm.clle)
 // ----------------------------------------------------------------------------
 dcl-ds ObjListParm_t qualified template;
   Count int(5);

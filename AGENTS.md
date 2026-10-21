@@ -14,10 +14,10 @@ This document provides essential context, architectural invariants, and IBM i / 
 `ibm-i-packager` is a native IBM i (`V7R4M0+`, `V7R3M0 TR9+`, `V7R5M0+`) CI/CD packaging and deployment toolkit consisting of two commands and their backing programs:
 
 1. **`PACK` / `#PACK`**:
-   - [`src/qcmdsrc/PACK.cmd`](src/qcmdsrc/PACK.cmd) $\rightarrow$ [`src/qcllesrc/PACKC.clle`](src/qcllesrc/PACKC.clle) $\rightarrow$ [`src/qrpglesrc/PACKR.sqlrpgle`](src/qrpglesrc/PACKR.sqlrpgle)
+   - [`src/qcmdsrc/PACK.cmd`](src/qcmdsrc/PACK.cmd) $\rightarrow$ [`src/qcllesrc/PACKC.pgm.clle`](src/qcllesrc/PACKC.pgm.clle) $\rightarrow$ [`src/qrpglesrc/PACKR.sqlrpgle`](src/qrpglesrc/PACKR.sqlrpgle)
    - Discovers objects in `SRCLIB` via `QSYS2.OBJECT_STATISTICS`, stamps a **10-character version string** into each object's User-Defined Attribute (`USRDFNATR`) using the `QLICOBJD` system API (key `9`), saves the objects via `SAVOBJ` to a QSYS `*SAVF` or IFS `*STMF`, stamps the `*SAVF` itself, and generates an HTML manifest via `QSYS2.IFS_WRITE_UTF8`.
 2. **`UNPACK` / `#UNPACK`**:
-   - [`src/qcmdsrc/UNPACK.cmd`](src/qcmdsrc/UNPACK.cmd) $\rightarrow$ [`src/qcllesrc/UNPACKC.clle`](src/qcllesrc/UNPACKC.clle) $\rightarrow$ [`src/qrpglesrc/UNPACKR.sqlrpgle`](src/qrpglesrc/UNPACKR.sqlrpgle)
+   - [`src/qcmdsrc/UNPACK.cmd`](src/qcmdsrc/UNPACK.cmd) $\rightarrow$ [`src/qcllesrc/UNPACKC.pgm.clle`](src/qcllesrc/UNPACKC.pgm.clle) $\rightarrow$ [`src/qrpglesrc/UNPACKR.sqlrpgle`](src/qrpglesrc/UNPACKR.sqlrpgle)
    - Inspects a package Save File using the **`QSRLSAVF`** API (format **`SAVF0200`**) into a user space (`QTEMP/UNPKSPC`), maps target libraries and `preserveData` flags via inline `LIBMAP` rules or an IFS JSON `MAPFILE` (`JSON_TABLE`), backs up existing objects to `BKPSAVF`, and restores objects in **strict 8-tier dependency precedence order** (`10` $\rightarrow$ `80`) while preserving existing object authorities (`QSYS2.OBJECT_PRIVILEGES` + `GRTOBJAUT REFOBJ`) and migrating existing PF/SQL Table records (`CPYF FMTOPT(*MAP *DROP)`).
 
 ---

@@ -129,9 +129,9 @@ ibm-i-packager/
 │   │   ├── PACK.cmd                  # Command definition for PACK (#PACK)
 │   │   └── UNPACK.cmd                # Command definition for UNPACK (#UNPACK)
 │   ├── qcllesrc/
-│   │   ├── PACKC.clle                # Command Processing Program (CPP) for PACK
-│   │   ├── UNPACKC.clle              # Command Processing Program (CPP) for UNPACK
-│   │   └── BUILD.clle                # Native 5250/CL build program (zero PASE dependencies)
+│   │   ├── PACKC.pgm.clle            # Command Processing Program (CPP) for PACK
+│   │   ├── UNPACKC.pgm.clle          # Command Processing Program (CPP) for UNPACK
+│   │   └── BUILD.pgm.clle            # Native 5250/CL build program (zero PASE dependencies)
 │   └── qrpglesrc/
 │       ├── PKGTYPES.rpgleinc         # Shared system API prototypes, data structures, and tier constants
 │       ├── PACKR.sqlrpgle            # Core SQLRPGLE packaging & version-stamping engine
@@ -154,7 +154,7 @@ ibm-i-packager/
 
 ## Building & Installing
 
-You can build the project using **IBM i TOBi (`makei`)**, **GNU Make (`gmake`)**, or **native CL (`BUILD.clle`)**.
+You can build the project using **IBM i TOBi (`makei`)**, **GNU Make (`gmake`)**, or **native CL (`BUILD.pgm.clle`)**.
 
 ### Option 1: Using IBM i TOBi (`makei`) / Code for IBM i (Recommended)
 
@@ -182,12 +182,12 @@ You can build the project using **IBM i TOBi (`makei`)**, **GNU Make (`gmake`)**
 gmake BIN_LIB=PACKAGER
 ```
 
-### Option 3: Native 5250 / CL Build (`BUILD.clle`)
+### Option 3: Native 5250 / CL Build (`BUILD.pgm.clle`)
 
-If you do not have PASE build tools installed, compile and call [`src/qcllesrc/BUILD.clle`](src/qcllesrc/BUILD.clle) directly from a 5250 command line:
+If you do not have PASE build tools installed, compile and call [`src/qcllesrc/BUILD.pgm.clle`](src/qcllesrc/BUILD.pgm.clle) directly from a 5250 command line:
 
 ```cl
-CRTBNDCL PGM(QGPL/BUILD) SRCSTMF('/path/to/ibm-i-packager/src/qcllesrc/BUILD.clle') +
+CRTBNDCL PGM(QGPL/BUILD) SRCSTMF('/path/to/ibm-i-packager/src/qcllesrc/BUILD.pgm.clle') +
          DFTACTGRP(*NO) ACTGRP(*NEW)
 
 CALL PGM(QGPL/BUILD) PARM(('PACKAGER  ') ('/path/to/ibm-i-packager/src'))

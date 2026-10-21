@@ -1,6 +1,6 @@
 /* ========================================================================= */
 /* Program:     BUILD                                                        */
-/* Source File: BUILD.clle                                                   */
+/* Source File: BUILD.pgm.clle                                               */
 /* Description: Builds the IBM i CI/CD Packager (#PACK and #UNPACK)          */
 /*              commands and programs from either IFS source directory       */
 /*              or QSYS source physical files into &TGTLIB.                  */
@@ -36,7 +36,7 @@
 
              /* 2. Compile PACKC (CLLE) */
              CHGVAR     VAR(&STMF) VALUE(%TRIM(&SRCDIR) *CAT +
-                          '/qcllesrc/PACKC.clle')
+                          '/qcllesrc/PACKC.pgm.clle')
              CRTBNDCL   PGM(&TGTLIB/PACKC) SRCSTMF(&STMF) +
                           DFTACTGRP(*NO) ACTGRP(*NEW) +
                           REPLACE(*YES) DBGVIEW(*SOURCE)
@@ -57,7 +57,7 @@
 
              /* 5. Compile UNPACKC (CLLE) */
              CHGVAR     VAR(&STMF) VALUE(%TRIM(&SRCDIR) *CAT +
-                          '/qcllesrc/UNPACKC.clle')
+                          '/qcllesrc/UNPACKC.pgm.clle')
              CRTBNDCL   PGM(&TGTLIB/UNPACKC) SRCSTMF(&STMF) +
                           DFTACTGRP(*NO) ACTGRP(*NEW) +
                           REPLACE(*YES) DBGVIEW(*SOURCE)

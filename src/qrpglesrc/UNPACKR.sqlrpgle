@@ -20,7 +20,7 @@ ctl-opt dftactgrp(*no) actgrp(*caller) option(*srcstmt:*nodebugio);
 /include 'PKGTYPES.rpgleinc'
 
 // ----------------------------------------------------------------------------
-// Program Entry Parameters (from UNPACKC.clle)
+// Program Entry Parameters (from UNPACKC.pgm.clle)
 // ----------------------------------------------------------------------------
 dcl-pi UNPACKR;
   inInpType   char(6)    const;

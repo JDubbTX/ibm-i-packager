@@ -14,24 +14,25 @@ Whenever adding, removing, or resizing a command parameter, all three layers **m
    - Note how CL `MAX(50)` / `MAX(20)` list parameters pass a 2-byte binary count prefix followed by fixed-width elements:
      - `OBJ` (`CHAR(10) MAX(50)`) $\rightarrow$ `2 + (50 * 10) = 502` bytes (`ElemList50_t` in [`PKGTYPES.rpgleinc`](qrpglesrc/PKGTYPES.rpgleinc)).
      - `OBJTYPE` (`CHAR(10) MAX(20)`) $\rightarrow$ `2 + (20 * 10) = 202` bytes (`ElemList20_t` in [`PKGTYPES.rpgleinc`](qrpglesrc/PKGTYPES.rpgleinc)).
-2. **CL Command Processing Program ([`src/qcllesrc/PACKC.clle`](qcllesrc/PACKC.clle))**:
+2. **CL Command Processing Program ([`src/qcllesrc/PACKC.pgm.clle`](qcllesrc/PACKC.pgm.clle))**:
    - Receives `PGM PARM(&SRCLIB &OBJLST &TYPLST &VERSION &OUTTYPE &SAVFQUAL &STMF &TGTRLS &CLEAR &MANIFEST)`.
+   - CL program sources must be named `*.pgm.clle`: TOBi maps `NAME.PGM: NAME.clle` to a nonexistent `CLLE_TO_PGM_RECIPE` and silently skips the compile. TOBi's `CRTBNDCL` also ignores `DFTACTGRP`/`ACTGRP` from `Rules.mk`, so keep `DCLPRCOPT DFTACTGRP(*NO) ACTGRP(*NEW)` in the source.
    - Prepares the target or `QTEMP/PKGSAVF` staging save file, calls `PACKR`, and if `OUTTYPE(*STMF)` exports the save file via `CPYTOSTMF ... CVTDTA(*NONE) ENDLINFMT(*FIXED)`.
 3. **SQLRPGLE Engine ([`src/qrpglesrc/PACKR.sqlrpgle`](qrpglesrc/PACKR.sqlrpgle))**:
-   - `dcl-pi PACKR;` must match the exact 14 parameters passed by `CALL PGM(PACKR)` in [`PACKC.clle`](qcllesrc/PACKC.clle).
+   - `dcl-pi PACKR;` must match the exact 14 parameters passed by `CALL PGM(PACKR)` in [`PACKC.pgm.clle`](qcllesrc/PACKC.pgm.clle).
 
 ### `#UNPACK` (`UNPACK`) Pipeline
 1. **Command Definition ([`src/qcmdsrc/UNPACK.cmd`](qcmdsrc/UNPACK.cmd))**:
    - Defines `PARM` keywords in exact positional order: `INPTYPE`, `SAVF`, `STMF`, `DFTLIB`, `LIBMAP`, `MAPFILE`, `CPYDTA`, `BKPSAVF`, `MANIFEST`.
    - `LIBMAP` (`MAX(30)` mixed list of 3 `CHAR(10)` elements) uses `LibMapList_t` (`CHAR(1024)` with 2-byte count + 30 offsets + 30 `LibMapElem_t` entries).
-2. **CL Command Processing Program ([`src/qcllesrc/UNPACKC.clle`](qcllesrc/UNPACKC.clle))**:
+2. **CL Command Processing Program ([`src/qcllesrc/UNPACKC.pgm.clle`](qcllesrc/UNPACKC.pgm.clle))**:
    - When `INPTYPE(*STMF)`, copies the IFS stream file into `QTEMP/UNPKSAVF` using:
      ```cl
      CPYFRMSTMF FROMSTMF(&STMF) TOMBR(&TOMBR) MBROPT(*REPLACE) CVTDTA(*NONE)
      ```
      **Important**: Never add `ENDLINFMT(*FIXED)` to `CPYFRMSTMF` (it is only valid on `CPYTOSTMF` and causes a CL compile error on `CPYFRMSTMF`).
 3. **SQLRPGLE Engine ([`src/qrpglesrc/UNPACKR.sqlrpgle`](qrpglesrc/UNPACKR.sqlrpgle))**:
-   - `dcl-pi UNPACKR;` must match the exact 13 parameters passed by `CALL PGM(UNPACKR)` in [`UNPACKC.clle`](qcllesrc/UNPACKC.clle).
+   - `dcl-pi UNPACKR;` must match the exact 13 parameters passed by `CALL PGM(UNPACKR)` in [`UNPACKC.pgm.clle`](qcllesrc/UNPACKC.pgm.clle).
 
 ---
 

@@ -1,6 +1,6 @@
 /* ========================================================================= */
 /* Program:     UNPACKC                                                      */
-/* Source File: UNPACKC.clle                                                 */
+/* Source File: UNPACKC.pgm.clle                                             */
 /* Description: Command Processing Program (CPP) for #UNPACK command.        */
 /*              Stages IFS stream file into QTEMP Save File if needed,       */
 /*              initializes optional Rollback Save File, and invokes         */
@@ -11,6 +11,8 @@
              PGM        PARM(&INPTYPE &SAVFQUAL &STMF &DFTLIB +
                           &LIBMAP &MAPFILE &CPYDTA &BKPQUAL +
                           &MANIFEST)
+
+             DCLPRCOPT  DFTACTGRP(*NO) ACTGRP(*NEW)
 
              /* Command Parameters */
              DCL        VAR(&INPTYPE)  TYPE(*CHAR) LEN(6)
