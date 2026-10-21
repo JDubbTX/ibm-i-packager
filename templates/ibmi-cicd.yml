@@ -76,11 +76,20 @@ spec:
       mkdir -p ~/.ssh
       chmod 700 ~/.ssh
       if [ -f "$SSH_KNOWN_HOSTS" ]; then
-        cp "$SSH_KNOWN_HOSTS" ~/.ssh/known_hosts
+        tr -d '\r' < "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
       else
-        printf "%s\n" "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+        printf "%s\n" "$SSH_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
       fi
       chmod 600 ~/.ssh/known_hosts
+      KNOWN_HOST="${IBMI_ADDRESS}"
+      if [ "${IBMI_SSH_PORT}" != "22" ]; then
+        KNOWN_HOST="[${IBMI_ADDRESS}]:${IBMI_SSH_PORT}"
+      fi
+      if ! ssh-keygen -F "${KNOWN_HOST}" -f ~/.ssh/known_hosts > /dev/null; then
+        echo "ERROR: SSH_KNOWN_HOSTS has no entry matching IBMI_ADDRESS on port ${IBMI_SSH_PORT}." >&2
+        echo "Update the inherited group variable with the host key for this address and port, verified with your IBM i administrator." >&2
+        exit 1
+      fi
       eval "$(ssh-agent -s)"
       bash -c 'ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)'
       cat <<EOF > ~/.ssh/config
@@ -100,12 +109,12 @@ spec:
 
       run_ssh() {
         local attempt
-        for attempt in 1 2 3 4 5; do
+        for attempt in 1 2 3 4 5 6 7 8 9 10; do
           if $SSH_CMD "$1"; then
             return 0
           fi
-          echo "SSH attempt ${attempt} failed, retrying in 3s..." >&2
-          sleep 3
+          echo "SSH attempt ${attempt} failed, retrying in 2s..." >&2
+          sleep 2
         done
         return 1
       }
@@ -114,12 +123,12 @@ spec:
         local src="$1"
         local dst="$2"
         local attempt
-        for attempt in 1 2 3 4 5; do
+        for attempt in 1 2 3 4 5 6 7 8 9 10; do
           if $SCP_CMD "$src" "ibmi-target:${dst}"; then
             return 0
           fi
-          echo "SCP upload attempt ${attempt} failed, retrying in 3s..." >&2
-          sleep 3
+          echo "SCP upload attempt ${attempt} failed, retrying in 2s..." >&2
+          sleep 2
         done
         return 1
       }
@@ -128,12 +137,12 @@ spec:
         local src="$1"
         local dst="$2"
         local attempt
-        for attempt in 1 2 3 4 5; do
+        for attempt in 1 2 3 4 5 6 7 8 9 10; do
           if $SCP_CMD -r "ibmi-target:${src}" "$dst"; then
             return 0
           fi
-          echo "SCP download attempt ${attempt} failed, retrying in 3s..." >&2
-          sleep 3
+          echo "SCP download attempt ${attempt} failed, retrying in 2s..." >&2
+          sleep 2
         done
         return 1
       }

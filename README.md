@@ -371,7 +371,7 @@ All components execute on standard **GitLab Linux runners** (`alpine:3.20`) and 
 
 ### Prerequisite GitLab CI/CD Variables
 
-The components use the following variables:
+The components use the following variables, inherited from the `ibm-i-stuff` GitLab group unless overridden in the project:
 
 | Variable | Required? | Default | Description |
 | :--- | :---: | :--- | :--- |
@@ -384,6 +384,20 @@ The components use the following variables:
 | **`OBJECT_LIB`** | **Yes** | — | IBM i library used by this project's build, package, and deployment jobs. |
 | **`ACCESS_TOKEN`** | No | — | Not consumed by the components in this repository. |
 | **`TOBI_DIR`** | No | `/home/$IBMI_USERID/projects/ibmi-tobi` | Path to TOBi (`makei`) on the IBM i host if `makei` is not installed globally in `/QOpenSys/pkgs/bin`. |
+
+#### Troubleshooting SSH host-key verification
+
+`No ED25519 host key is known ... and you have requested strict checking` means the runner does not have a trusted host-key entry matching the destination. This is separate from decoding `SSH_PRIVATE_KEY` and authenticating the user.
+
+Check the effective `IBMI_ADDRESS`, `IBMI_SSH_PORT`, and `SSH_KNOWN_HOSTS` in the failing job. A project override, environment scope, or protected-variable setting can change which group values are available.
+
+- For port `22`, the known-hosts entry must match `IBMI_ADDRESS` (for example, `host.example ssh-ed25519 ...`).
+- For a non-default port, the entry must match `[IBMI_ADDRESS]:IBMI_SSH_PORT` (for example, `[host.example]:2222 ssh-ed25519 ...`).
+- A hostname entry does not automatically match an IP address, and an entry for port `2222` does not match port `22`. Hashed entries are supported.
+
+Obtain the correct host key and verify its fingerprint with the IBM i administrator over a trusted channel before updating the group-level `SSH_KNOWN_HOSTS`. `ssh-keyscan -p <port> <host>` can collect a candidate key, but its output alone does not establish trust. Do not disable strict checking or automatically trust a key collected during the job.
+
+The components check for a matching entry before starting SSH. A matching entry can still fail verification if its key is stale or the server offers a different key type; verify the current server key before replacing it. Missing build-log artifacts after this failure are a consequence of the build never starting.
 
 ---
 
