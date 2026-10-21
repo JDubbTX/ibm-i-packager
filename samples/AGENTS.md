@@ -47,5 +47,6 @@ Always use these exact extensions in `samples/`:
 
 3. **Include Directory for Sample Copybooks**:
    - [`samples/qrpglesrc/TAXPROTO.RPGLEINC`](qrpglesrc/TAXPROTO.RPGLEINC) lives in `samples/qrpglesrc/`.
-   - Keep `private INCDIR = samples/qrpglesrc` on `TAXMOD.MODULE` and `ORDPGM.PGM` in [`samples/qrpglesrc/Rules.mk`](qrpglesrc/Rules.mk).
+   - In [`samples/qrpglesrc/Rules.mk`](qrpglesrc/Rules.mk), keep `private INCDIR = 'samples/qrpglesrc'` (quoted) on `TAXMOD.MODULE` and `private INCDIR = samples/qrpglesrc` (unquoted) on `ORDPGM.PGM`.
+   - TOBi passes `INCDIR($(INCDIR))` directly to `CRTRPGMOD`, where an unquoted path containing `/` fails with `CPD0049: Qualified name not valid for parameter INCDIR` (then `CPFA0A9` on the missing `EVFEVENT` member). `CRTSQLRPGI` targets receive `INCDIR` through TOBi's quoted `COMPILEOPT`, so `ORDPGM.PGM` stays unquoted.
 

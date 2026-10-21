@@ -131,16 +131,19 @@ spec:
       SSH_CMD="ssh ibmi-target"
       SCP_CMD="scp"
 
+      # Retry only SSH connection failures (exit 255); remote command failures are returned immediately.
       run_ssh() {
-        local attempt
+        local attempt rc
         for attempt in 1 2 3 4 5 6 7 8 9 10; do
-          if $SSH_CMD "$1"; then
-            return 0
+          rc=0
+          $SSH_CMD "$1" || rc=$?
+          if [ "$rc" -ne 255 ]; then
+            return "$rc"
           fi
-          echo "SSH attempt ${attempt} failed, retrying in 2s..." >&2
+          echo "SSH connection attempt ${attempt} failed, retrying in 2s..." >&2
           sleep 2
         done
-        return 1
+        return 255
       }
 
       run_scp_to() {
