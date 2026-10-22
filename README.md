@@ -119,6 +119,7 @@ SELECT OS_VERSION || '.' || OS_RELEASE AS IBM_I_VERSION,
 
 ```text
 ibm-i-packager/
+├── AGENTS.md                         # Repository-wide AI agent development guide
 ├── iproj.json                        # Project metadata & library list config for Code for IBM i / TOBi
 ├── Rules.mk                          # Top-level TOBi build rules (src, samples, test)
 ├── Makefile                          # Standalone PASE gmake build file
@@ -127,6 +128,7 @@ ibm-i-packager/
 ├── .vscode/
 │   └── testing.json                  # VS Code IBM i Testing extension configuration
 ├── src/
+│   ├── AGENTS.md                     # Core PACK/UNPACK engine and IBM i system API rules
 │   ├── qcmdsrc/
 │   │   ├── PACK.cmd                  # Command definition for PACK (#PACK)
 │   │   └── UNPACK.cmd                # Command definition for UNPACK (#UNPACK)
@@ -139,12 +141,14 @@ ibm-i-packager/
 │       ├── PACKR.sqlrpgle            # Core SQLRPGLE packaging & version-stamping engine
 │       └── UNPACKR.sqlrpgle          # Core SQLRPGLE precedence unpackaging & data/authority engine
 ├── test/
+│   ├── AGENTS.md                     # iRPGUnit test suite and VS Code IBM i Testing rules
 │   ├── qrpglesrc/
 │   │   ├── pkgtest.test.sqlrpgle     # iRPGUnit test suite (6 end-to-end integration tests, 60 assertions)
 │   │   └── testing.json              # Directory-level test runner config
 │   └── qcllesrc/
 │       └── RUNTESTS.clle             # Native CL test runner (RUCRTRPG + RUCALLTST)
 ├── samples/                          # Multi-tier sample application (PF, LF, SQL Table/View, DSPF, PRTF,
+│   ├── AGENTS.md                     # Sample IBM i object and TOBi build rules
 │   └── ...                           # MSGF, DTAARA, PNLGRP, BNDDIR, RPGLE, SQLRPGLE, COBOL, C, CLLE, CMD)
 └── examples/
     ├── unpack-map.json               # Example JSON library routing & per-file preserveData config
