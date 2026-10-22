@@ -81,6 +81,7 @@ spec:
 
 "$[[ inputs.job_name ]]":
   stage: $[[ inputs.stage ]]
+  resource_group: "ibmi-$[[ inputs.default_lib ]]"
   image: $[[ inputs.image ]]
   environment:
     name: $[[ inputs.environment ]]

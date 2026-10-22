@@ -122,6 +122,8 @@ ibm-i-packager/
 ├── iproj.json                        # Project metadata & library list config for Code for IBM i / TOBi
 ├── Rules.mk                          # Top-level TOBi build rules (src, samples, test)
 ├── Makefile                          # Standalone PASE gmake build file
+├── .gitlab-ci.yml                    # Parent pipeline: serialized IBM i child pipeline + Catalog release
+├── .gitlab/ci/ibmi-pipeline.yml      # Child pipeline dogfooding the components (build/test/package/deploy)
 ├── .vscode/
 │   └── testing.json                  # VS Code IBM i Testing extension configuration
 ├── src/
@@ -525,6 +527,22 @@ include:
 | `packager_lib` | `string` | `"PACKAGER"` | Library on the IBM i host where `#PACK` and `#UNPACK` are installed. |
 | `artifact_dir` | `string` | `"artifacts"` | Runner workspace directory where downloaded `.savf` and HTML manifest artifacts are stored. |
 
+### Concurrency (One Pipeline per IBM i Library)
+
+Every IBM i job runs in a GitLab [`resource_group`](https://docs.gitlab.com/ci/resource_groups/) named after its target library: `ibmi-<build_lib>` for `ibmi-cicd`, `ibmi-<src_lib>` for `pack`, and `ibmi-<default_lib>` for `unpack`. Two jobs that use the same library never run at the same time, even across pipelines. To use a different lock, override `resource_group` on the job in your `.gitlab-ci.yml`.
+
+Resource groups lock **individual jobs**, so two pipelines can still interleave: pipeline A builds, then pipeline B builds, then A tests B's objects. To serialize **whole pipelines**, run the component jobs in a child pipeline behind a trigger job that holds the lock, as this repository does in [`.gitlab-ci.yml`](.gitlab-ci.yml):
+
+```yaml
+ibmi-pipeline:
+  resource_group: ibmi-pipeline-$OBJECT_LIB  # must differ from the ibmi-<lib> job lock to avoid deadlock
+  trigger:
+    include: .gitlab/ci/ibmi-pipeline.yml   # the component includes live here
+    strategy: mirror                         # hold the lock until the child pipeline finishes
+```
+
+Pushing a branch and a tag for the same commit now queues the second pipeline instead of building both into the same library and `BUILD_DIR` at once.
+
 ---
 
 ### Publishing This Repository to the GitLab CI/CD Catalog
@@ -542,7 +560,7 @@ To list this project in the **GitLab.com CI/CD Catalog** (`Explore -> CI/CD Cata
      git tag -a 1.0.0 -m "Initial GitLab CI/CD Catalog release"
      git push origin 1.0.0
      ```
-   - The `create-catalog-release` job in [`.gitlab-ci.yml`](.gitlab-ci.yml) uses the `release` keyword (via the `glab` CLI image) after the build, iRPGUnit tests, and `#PACK` jobs pass, and publishes version `1.0.0` to the **GitLab CI/CD Catalog**. Releases created manually in the GitLab UI are **not** published to the Catalog.
+   - The `create-catalog-release` job in [`.gitlab-ci.yml`](.gitlab-ci.yml) uses the `release` keyword (via the `glab` CLI image) after the serialized `ibmi-pipeline` child pipeline (build, iRPGUnit tests, `#PACK`) passes, and publishes version `1.0.0` to the **GitLab CI/CD Catalog**. Releases created manually in the GitLab UI are **not** published to the Catalog.
    - Until the first tag pipeline succeeds, the project's **Releases** page shows *"There was a problem fetching the CI/CD Catalog releases"*; this clears after the first published release.
 
 ---

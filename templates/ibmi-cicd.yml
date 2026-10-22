@@ -153,6 +153,7 @@ spec:
 ibmi:build:
   <<: *ibmi_cicd_ssh_base
   stage: $[[ inputs.build_stage ]]
+  resource_group: "ibmi-$[[ inputs.build_lib ]]"
   script:
     - echo "=== Archiving project sources for upload to ${IBMI_ADDRESS}:${REMOTE_DIR} ==="
     - tar --exclude='.git' --exclude='artifacts' --exclude='build-logs' -czf /tmp/pkg_sync.tar.gz .
@@ -207,6 +208,7 @@ ibmi:build:
 ibmi:test:
   <<: *ibmi_cicd_ssh_base
   stage: $[[ inputs.test_stage ]]
+  resource_group: "ibmi-$[[ inputs.build_lib ]]"
   needs:
     - job: ibmi:build
       artifacts: false
