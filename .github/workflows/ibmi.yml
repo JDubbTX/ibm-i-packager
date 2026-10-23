@@ -1,0 +1,66 @@
+name: IBM i build, test, and package
+
+on:
+  push:
+    branches: [main]
+    tags: ['*']
+  workflow_dispatch:
+    inputs:
+      deploy_samples:
+        description: Restore the sample package into the GitHub build library
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# The test fixture libraries are shared by every GitHub run, regardless of ref.
+concurrency:
+  group: ibmi-github
+  cancel-in-progress: false
+
+jobs:
+  ibmi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: ibmi-github
+    env:
+      IBMI_ADDRESS: ${{ secrets.IBMI_ADDRESS }}
+      IBMI_USERID: ${{ secrets.IBMI_USERID }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+      IBMI_SSH_PORT: ${{ vars.IBMI_SSH_PORT || '22' }}
+      OBJECT_LIB: ${{ vars.OBJECT_LIB || 'GHPACK' }}
+      BUILD_DIR: ${{ vars.BUILD_DIR }}
+      DEPLOY_SAMPLES: ${{ inputs.deploy_samples || false }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Build, test, and package on IBM i
+        run: |
+          docker run --rm \
+            --volume "$GITHUB_WORKSPACE:/workspace" --workdir /workspace \
+            --env IBMI_ADDRESS --env IBMI_USERID --env IBMI_SSH_PORT \
+            --env SSH_PRIVATE_KEY --env SSH_KNOWN_HOSTS \
+            --env OBJECT_LIB --env BUILD_DIR --env DEPLOY_SAMPLES \
+            --env GITHUB_SHA --env GITHUB_RUN_ID --env GITHUB_RUN_ATTEMPT \
+            alpine:3.20 sh -ec '
+              apk add --no-cache python3 py3-yaml bash
+              PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s .github/scripts -p "test_*.py"
+              python3 .github/scripts/ibmi.py
+            '
+
+      - name: Upload test results, packages, manifests, and build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ibmi-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            rpgunit-results.xml
+            build-logs/
+            artifacts/
+            artifacts-samples/
+          if-no-files-found: warn
+          retention-days: 30

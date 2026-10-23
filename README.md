@@ -125,6 +125,11 @@ ibm-i-packager/
 ├── Makefile                          # Standalone PASE gmake build file
 ├── .gitlab-ci.yml                    # Parent pipeline: serialized IBM i child pipeline + Catalog release
 ├── .gitlab/ci/ibmi-pipeline.yml      # Child pipeline dogfooding the components (build/test/package/deploy)
+├── .github/
+│   ├── workflows/ibmi.yml            # GitHub Actions build, test, package, and optional sample restore
+│   └── scripts/
+│       ├── ibmi.py                   # Runs the existing CI component commands with GitHub fixture isolation
+│       └── test_ibmi.py              # CI adapter, isolation, and failure-handling tests
 ├── .vscode/
 │   └── testing.json                  # VS Code IBM i Testing extension configuration
 ├── src/
@@ -355,6 +360,73 @@ Using a JSON mapping file (see [`examples/unpack-map.json`](examples/unpack-map.
                (*SRVPGM *ALL PRODPGM)) +
         CPYDTA(*YES) +
         BKPSAVF(QGPL/ROLLBACK01)
+```
+
+---
+
+## GitHub Actions and GitLab Synchronization
+
+GitLab is the source of truth at [ibm-i-stuff/ibm-i-packager](https://gitlab.com/ibm-i-stuff/ibm-i-packager).
+The GitHub destination is [JDubbTX/ibm-i-packager](https://github.com/JDubbTX/ibm-i-packager).
+Keep GitLab CI enabled; GitHub Actions runs independently against separate IBM i resources.
+
+### Configure the GitHub Repository
+
+1. Create an **empty, public** `JDubbTX/ibm-i-packager` repository. Do not initialize a README, license, or `.gitignore`.
+2. In GitHub **Settings > Environments**, create `ibmi-github`.
+3. Add these **environment secrets** (GitLab group variables are not inherited by GitHub):
+
+   | Secret | Value |
+   | :--- | :--- |
+   | `IBMI_ADDRESS` | The same IBM i hostname used by GitLab. |
+   | `IBMI_USERID` | The IBM i SSH user profile. |
+   | `SSH_PRIVATE_KEY` | A base64-encoded private key authorized for that profile, as in GitLab. |
+   | `SSH_KNOWN_HOSTS` | Verified OpenSSH known-hosts **contents**, not a GitLab file-variable pathname. |
+
+4. Add these **environment variables**:
+
+   | Variable | Value |
+   | :--- | :--- |
+   | `OBJECT_LIB` | A dedicated GitHub build library, default `GHPACK`. Must start with `GH`, contain only uppercase letters, digits, or underscores, and be at most 10 characters. Do not use a test fixture library. |
+   | `BUILD_DIR` | A dedicated absolute IFS directory, e.g. `/home/JWEIRICH/GitHubBuilds/ibm-i-packager`. Required; must contain `/github` (case-insensitive), with no spaces, shell metacharacters, or `..` path components. Never reuse GitLab's build directory. |
+   | `IBMI_SSH_PORT` | Optional; defaults to `22`. |
+
+The IBM i user needs the same build/test authorities and installed TOBi/iRPGUnit dependencies as GitLab, including authority to create the GitHub build and fixture libraries.
+
+### Configure One-Way GitLab Push Mirroring
+
+In GitLab **Settings > Repository > Mirroring repositories**:
+
+1. Add `ssh://github.com/JDubbTX/ibm-i-packager.git` with direction **Push** and username `git`.
+2. Select **SSH public key** authentication. Enter GitHub's SSH host key from its [official fingerprint documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints), or detect the key and verify its fingerprint against that documentation before saving.
+3. Leave **Only mirror protected branches** off if all branches should be mirrored. Enable **Keep divergent refs** to report unexpected GitHub edits instead of overwriting them.
+4. Save, then copy the mirror's generated **SSH public key**. In GitHub **Settings > Deploy keys**, add it with **Allow write access**. This limits mirror access to this repository and does not require an account-wide token.
+5. Back in GitLab, select **Update now**. Check the mirror status, then verify that GitHub's `main` commit and tags match GitLab.
+
+Use GitLab's [built-in push mirroring](https://docs.gitlab.com/user/project/repository/mirror/push/), not a second CI push job. It synchronizes Git history, branches, and tags without a synchronization loop. Updates are asynchronous, normally within five minutes. Issues, merge/pull requests, releases, CI settings, secrets, and artifacts are **not** mirrored.
+
+Make changes in GitLab, including any changes proposed on GitHub. Do not merge directly into the GitHub mirror. GitLab Catalog releases remain managed by GitLab CI; mirroring a tag does not create a GitHub Release.
+
+### GitHub Workflow Behavior
+
+[`ibmi.yml`](.github/workflows/ibmi.yml) runs on pushes to `main`, on tags, and through **Actions > IBM i build, test, and package > Run workflow**. It:
+
+1. Validates the CI adapter, then builds with TOBi.
+2. Compiles and runs iRPGUnit, requiring a nonempty JUnit report with no failures/errors.
+3. Packages the tools and sample application as `.savf` files with HTML manifests.
+4. Optionally restores the sample package into the GitHub build library when **deploy_samples** is selected for a manual run.
+5. Uploads available JUnit XML, build logs, packages, and manifests, including on failure.
+
+The Linux runner uses Alpine 3.20 in Docker. [`ibmi.py`](.github/scripts/ibmi.py) renders and runs the existing component `before_script`/`script` commands; it is a project-specific adapter, not a general GitLab pipeline executor. Sample object selections and package names come from [the GitLab child pipeline](.gitlab/ci/ibmi-pipeline.yml). This keeps SSH retries, host-key verification, compiler options, and packaging commands aligned without duplicating the CI implementation. GitLab-specific scheduling, artifact handling, and release publication are not executed by the adapter.
+
+GitHub runs are serialized across branches and tags without canceling a running IBM i operation. GitHub concurrency retains at most one pending run; a newer pending run can replace an older one, unlike GitLab's queued resource groups. Locks are not shared between platforms.
+
+In addition to separate `OBJECT_LIB`/`BUILD_DIR`, the adapter generates an untracked test-source copy using `GHPTSTSRC`, `GHPTSTTGT`, `GHPTSTDTA`, `GHPTSTPGM`, and `/tmp/gh_pkgtest_*`. This replaces the suite's SQL schema literals, RPG constants, JSON values, and IFS paths consistently, leaving the original test source and GitLab fixtures unchanged. Reserve these names for this GitHub repository; other projects must not use them. The generated copy is removed locally after the run. No IBM i secrets are exposed to pull-request workflows.
+
+To validate the adapter locally with Python 3.9+ and PyYAML installed:
+
+```bash
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s .github/scripts -p 'test_*.py'
 ```
 
 ---
