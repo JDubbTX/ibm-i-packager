@@ -1,0 +1,95 @@
+name: IBM i Packager
+description: Build, test, package, and deploy native IBM i objects over verified SSH.
+author: JDubbTX
+branding:
+  icon: package
+  color: blue
+inputs:
+  operation:
+    description: "pack, unpack, or ci (TOBi build, optional iRPGUnit tests, then pack)"
+    required: true
+    default: pack
+  ibmi-address:
+    description: IBM i hostname or IPv4 address
+    required: true
+  ibmi-userid:
+    description: IBM i SSH user profile
+    required: true
+  ssh-private-key:
+    description: Base64-encoded SSH private key
+    required: true
+  ssh-known-hosts:
+    description: Verified OpenSSH known_hosts contents
+    required: true
+  ibmi-ssh-port:
+    description: IBM i SSH port
+    default: '22'
+  src-lib:
+    description: Source library for pack, or build library for ci
+    default: PACKAGER
+  packager-lib:
+    description: Library containing installed PACK and UNPACK commands; ci uses src-lib
+    default: PACKAGER
+  objects:
+    description: Space-separated object names or generic patterns
+    default: '*ALL'
+  object-types:
+    description: Space-separated IBM i object types
+    default: '*ALL'
+  version:
+    description: Version stamp, at most 10 characters; defaults to the short commit SHA
+  target-release:
+    description: SAVOBJ target release
+    default: '*CURRENT'
+  artifact-dir:
+    description: Workspace-relative output directory
+    default: artifacts
+  stmf-name:
+    description: Output package filename
+    default: package.savf
+  manifest-name:
+    description: Manifest filename; defaults to pack-manifest.html or unpack-manifest.html
+  stmf-artifact:
+    description: Workspace-relative input package path for unpack
+    default: artifacts/package.savf
+  default-lib:
+    description: Explicit target library for unpack
+  map-file:
+    description: Workspace-relative JSON routing file, or *NONE
+    default: '*NONE'
+  copy-data:
+    description: Preserve existing file data on unpack (*YES or *NO)
+    default: '*YES'
+  backup-savf:
+    description: Qualified rollback save file LIB/FILE, or *NONE
+    default: '*NONE'
+  build-dir:
+    description: Dedicated absolute IFS source directory, required for ci
+  rpgunit-lib:
+    description: Library containing iRPGUnit
+    default: RPGUNIT
+  test-src:
+    description: Workspace-relative iRPGUnit source, or *NONE to skip tests
+    default: '*NONE'
+  test-pgm:
+    description: iRPGUnit test service program name
+    default: TPKGTEST
+outputs:
+  artifact-dir:
+    description: Workspace-relative directory containing downloaded artifacts
+    value: ${{ steps.run.outputs.artifact-dir }}
+  package-path:
+    description: Workspace-relative save file path (empty for unpack)
+    value: ${{ steps.run.outputs.package-path }}
+  manifest-path:
+    description: Workspace-relative HTML manifest path
+    value: ${{ steps.run.outputs.manifest-path }}
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      env:
+        ACTION_ROOT: ${{ github.action_path }}
+        ACTION_INPUTS: ${{ toJSON(inputs) }}
+      run: bash "$ACTION_ROOT/.github/scripts/run-action.sh"

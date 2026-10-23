@@ -1,0 +1,66 @@
+name: IBM i Pack
+description: Stamp and save IBM i objects using PACK over verified SSH.
+inputs:
+  operation:
+    description: Operation (use pack for this convenience action)
+    default: pack
+  ibmi-address:
+    description: IBM i hostname or IPv4 address
+    required: true
+  ibmi-userid:
+    description: IBM i SSH user profile
+    required: true
+  ssh-private-key:
+    description: Base64-encoded private key
+    required: true
+  ssh-known-hosts:
+    description: Verified known_hosts contents
+    required: true
+  ibmi-ssh-port:
+    description: SSH port
+    default: '22'
+  src-lib:
+    description: Source library
+    required: true
+  packager-lib:
+    description: Installed packager library
+    default: PACKAGER
+  objects:
+    description: Space-separated object names or generic patterns
+    default: '*ALL'
+  object-types:
+    description: Space-separated object types
+    default: '*ALL'
+  version:
+    description: Version stamp (at most 10 characters), or short commit SHA if omitted
+  target-release:
+    description: SAVOBJ target release
+    default: '*CURRENT'
+  artifact-dir:
+    description: Workspace-relative output directory
+    default: artifacts
+  stmf-name:
+    description: Package filename
+    default: package.savf
+  manifest-name:
+    description: Manifest filename
+    default: pack-manifest.html
+outputs:
+  artifact-dir:
+    description: Downloaded artifacts directory
+    value: ${{ steps.run.outputs.artifact-dir }}
+  package-path:
+    description: Downloaded package path
+    value: ${{ steps.run.outputs.package-path }}
+  manifest-path:
+    description: Downloaded manifest path
+    value: ${{ steps.run.outputs.manifest-path }}
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      env:
+        ACTION_ROOT: ${{ github.action_path }}/../..
+        ACTION_INPUTS: ${{ toJSON(inputs) }}
+      run: bash "$ACTION_ROOT/.github/scripts/run-action.sh"

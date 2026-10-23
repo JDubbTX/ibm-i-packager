@@ -53,6 +53,49 @@ jobs:
               python3 .github/scripts/ibmi.py
             '
 
+      - name: Exercise the Marketplace action
+        uses: ./
+        with:
+          operation: pack
+          ibmi-address: ${{ secrets.IBMI_ADDRESS }}
+          ibmi-userid: ${{ secrets.IBMI_USERID }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          ibmi-ssh-port: ${{ vars.IBMI_SSH_PORT || '22' }}
+          src-lib: ${{ vars.OBJECT_LIB || 'GHPACK' }}
+          packager-lib: ${{ vars.OBJECT_LIB || 'GHPACK' }}
+          objects: APPCFG APPMSGF
+          stmf-name: action-package.savf
+          manifest-name: action-pack-manifest.html
+
+      - name: Exercise the pack convenience action
+        uses: ./actions/pack
+        with:
+          ibmi-address: ${{ secrets.IBMI_ADDRESS }}
+          ibmi-userid: ${{ secrets.IBMI_USERID }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          ibmi-ssh-port: ${{ vars.IBMI_SSH_PORT || '22' }}
+          src-lib: ${{ vars.OBJECT_LIB || 'GHPACK' }}
+          packager-lib: ${{ vars.OBJECT_LIB || 'GHPACK' }}
+          objects: APPCFG APPMSGF
+          stmf-name: convenience-package.savf
+          manifest-name: convenience-pack-manifest.html
+
+      - name: Exercise the unpack convenience action
+        if: ${{ inputs.deploy_samples }}
+        uses: ./actions/unpack
+        with:
+          ibmi-address: ${{ secrets.IBMI_ADDRESS }}
+          ibmi-userid: ${{ secrets.IBMI_USERID }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          ibmi-ssh-port: ${{ vars.IBMI_SSH_PORT || '22' }}
+          packager-lib: ${{ vars.OBJECT_LIB || 'GHPACK' }}
+          default-lib: ${{ vars.OBJECT_LIB || 'GHPACK' }}
+          stmf-artifact: artifacts/convenience-package.savf
+          manifest-name: convenience-unpack-manifest.html
+
       - name: Restore artifact ownership
         if: always()
         run: |

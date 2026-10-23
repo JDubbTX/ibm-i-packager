@@ -1,0 +1,61 @@
+name: IBM i Unpack
+description: Restore IBM i packages with dependency ordering and data and authority preservation.
+inputs:
+  operation:
+    description: Operation (use unpack for this convenience action)
+    default: unpack
+  ibmi-address:
+    description: IBM i hostname or IPv4 address
+    required: true
+  ibmi-userid:
+    description: IBM i SSH user profile
+    required: true
+  ssh-private-key:
+    description: Base64-encoded private key
+    required: true
+  ssh-known-hosts:
+    description: Verified known_hosts contents
+    required: true
+  ibmi-ssh-port:
+    description: SSH port
+    default: '22'
+  packager-lib:
+    description: Installed packager library
+    default: PACKAGER
+  default-lib:
+    description: Explicit target library
+    required: true
+  stmf-artifact:
+    description: Workspace-relative input package path
+    default: artifacts/package.savf
+  map-file:
+    description: Workspace-relative JSON routing file, or *NONE
+    default: '*NONE'
+  copy-data:
+    description: Preserve existing file data (*YES or *NO)
+    default: '*YES'
+  backup-savf:
+    description: Qualified rollback save file LIB/FILE, or *NONE
+    default: '*NONE'
+  artifact-dir:
+    description: Workspace-relative output directory
+    default: artifacts
+  manifest-name:
+    description: Deployment manifest filename
+    default: unpack-manifest.html
+outputs:
+  artifact-dir:
+    description: Downloaded artifacts directory
+    value: ${{ steps.run.outputs.artifact-dir }}
+  manifest-path:
+    description: Downloaded manifest path
+    value: ${{ steps.run.outputs.manifest-path }}
+runs:
+  using: composite
+  steps:
+    - id: run
+      shell: bash
+      env:
+        ACTION_ROOT: ${{ github.action_path }}/../..
+        ACTION_INPUTS: ${{ toJSON(inputs) }}
+      run: bash "$ACTION_ROOT/.github/scripts/run-action.sh"

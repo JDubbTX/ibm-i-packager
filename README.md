@@ -120,6 +120,10 @@ SELECT OS_VERSION || '.' || OS_RELEASE AS IBM_I_VERSION,
 ```text
 ibm-i-packager/
 ├── AGENTS.md                         # Repository-wide AI agent development guide
+├── action.yml                        # Root IBM i Packager action for GitHub Marketplace
+├── actions/
+│   ├── pack/action.yml                # Reusable pack convenience action
+│   └── unpack/action.yml              # Reusable unpack convenience action
 ├── iproj.json                        # Project metadata & library list config for Code for IBM i / TOBi
 ├── Rules.mk                          # Top-level TOBi build rules (src, samples, test)
 ├── Makefile                          # Standalone PASE gmake build file
@@ -127,8 +131,13 @@ ibm-i-packager/
 ├── .gitlab/ci/ibmi-pipeline.yml      # Child pipeline dogfooding the components (build/test/package/deploy)
 ├── .github/
 │   ├── workflows/ibmi.yml            # GitHub Actions build, test, package, and optional sample restore
+│   ├── workflows/reusable-ibmi.yml    # Consumer build/test/package workflow
+│   ├── actions.Dockerfile            # Alpine runtime for reusable actions
 │   └── scripts/
 │       ├── ibmi.py                   # Runs the existing CI component commands with GitHub fixture isolation
+│       ├── action.py                 # Validates and runs consumer action inputs
+│       ├── run-action.sh             # Starts the action runtime as the runner user
+│       ├── test_action.py            # Consumer action validation and failure tests
 │       └── test_ibmi.py              # CI adapter, isolation, and failure-handling tests
 ├── .vscode/
 │   └── testing.json                  # VS Code IBM i Testing extension configuration
@@ -241,6 +250,28 @@ Discovers matching objects in `SRCLIB`, stamps the 10-character `VERSION` into e
       VERSION('REL-01.02 ') OUTTYPE(*SAVF) +
       SAVF(QGPL/REL0102SVF)
 ```
+
+#### Query Objects by Version
+
+In IBM i Access Client Solutions **Run SQL Scripts**, query `QSYS2.OBJECT_STATISTICS` and filter `USER_DEFINED_ATTRIBUTE` to find objects stamped with a specific release version or CI commit identifier. Replace the library and version below with your own values:
+
+```sql
+SELECT OBJNAME, OBJTYPE, OBJCREATED, USER_DEFINED_ATTRIBUTE
+  FROM TABLE(QSYS2.OBJECT_STATISTICS('JWEIRICH2', '*PGM *SRVPGM'))
+ WHERE USER_DEFINED_ATTRIBUTE = 'b55359e7';
+```
+
+![IBM i Access Client Solutions showing programs and service programs stamped with version b55359e7](docs/images/query-objects-by-version.png)
+
+#### View the Stamped Version in a 5250 Session
+
+Run `DSPOBJD` with `DETAIL(*FULL)` and page forward to **User-defined information**. The **Attribute** field shows the version stamped by `#PACK`:
+
+```cl
+DSPOBJD OBJ(JWEIRICH2/APPCFG) OBJTYPE(*DTAARA) DETAIL(*FULL)
+```
+
+![Display Object Description - Full showing version b55359e7 in the user-defined Attribute field for JWEIRICH2/APPCFG](docs/images/display-object-version.png)
 
 ---
 
@@ -364,6 +395,130 @@ Using a JSON mapping file (see [`examples/unpack-map.json`](examples/unpack-map.
 
 ---
 
+## Reusable GitHub Actions and Marketplace
+
+The root [`action.yml`](action.yml) defines **IBM i Packager**, supporting `operation: pack`, `unpack`, or `ci`. The [`pack`](actions/pack/action.yml) and [`unpack`](actions/unpack/action.yml) convenience actions expose operation-specific inputs. All three run the same implementation, using the existing GitLab component commands rather than a separate packaging engine.
+
+**Release preparation:** the examples below target the planned `1.1.0` release. They become usable at that ref only after the tested commit is tagged in GitLab and mirrored to GitHub. Until then, use `@main` for evaluation, not a stable production dependency. The existing `1.0.0` tag does not contain these actions.
+
+### Requirements and Safety
+
+- Use a standard Ubuntu GitHub runner with Docker and Python 3. Container jobs and Windows/macOS runners are not supported. Runtime dependencies are installed in an Alpine image, not on the IBM i.
+- `PACK`/`UNPACK` must already be installed in `packager-lib` for standalone operations. `operation: ci` builds the consumer's checked-out sources using TOBi and installs command aliases in `src-lib`. The consumer must use this project's compatible TOBi library variable `lib1`, build the packager tools, or otherwise provide compatible commands in that library.
+- Pass credentials through GitHub secrets. `ssh-private-key` is base64-encoded; `ssh-known-hosts` must contain verified host-key entries. SSH uses strict host checking and the existing ten-attempt connection retry policy.
+- Source/target library names and command inputs are validated before SSH. Use uppercase IBM i names. Version stamps are limited to 10 letters, digits, dots, underscores, or hyphens; the default is the first eight characters of the caller's commit SHA. Paths must be shell-safe and workspace-relative, except for the remote absolute `build-dir`.
+- Actions deliberately expose the portable `*STMF` save-file interface. For advanced QSYS `*SAVF` destinations or inline `LIBMAP`, use the GitLab components or native commands; JSON `map-file` routing is available for the unpack action.
+- The action writes downloaded artifacts as the runner user. It does **not** upload them automatically; use `actions/upload-artifact` in the caller. Unpack requires an existing local package and explicit `default-lib`; no deployment happens just by installing the action.
+- Standalone actions do not acquire IBM i locks. Set workflow/job `concurrency` for every operation touching the same library, use dedicated IFS directories, and coordinate test fixtures across projects and platforms. GitHub locks cannot serialize GitLab jobs or other repositories.
+
+### Package Objects
+
+```yaml
+name: Package IBM i application
+on: workflow_dispatch
+permissions:
+  contents: read
+concurrency:
+  group: ibmi-MYAPPLIB
+  cancel-in-progress: false
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: JDubbTX/ibm-i-packager@1.1.0
+        id: package
+        with:
+          operation: pack
+          ibmi-address: ${{ secrets.IBMI_ADDRESS }}
+          ibmi-userid: ${{ secrets.IBMI_USERID }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          src-lib: MYAPPLIB
+          packager-lib: PACKAGER
+          objects: 'ORD* CUST*'
+          object-types: '*PGM *FILE'
+          version: '1.2.3'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ibmi-package
+          path: ${{ steps.package.outputs.artifact-dir }}
+```
+
+For the convenience action, replace `uses` with `JDubbTX/ibm-i-packager/actions/pack@1.1.0` and omit `operation`. Outputs are `artifact-dir`, `package-path`, and `manifest-path`; paths are relative to the caller's workspace.
+
+### Deploy a Package
+
+In a job protected by an appropriate GitHub environment and the same library concurrency lock, download a previously built artifact, then invoke unpack:
+
+```yaml
+- uses: actions/download-artifact@v7
+  with:
+    name: ibmi-package
+    path: artifacts
+- uses: JDubbTX/ibm-i-packager/actions/unpack@1.1.0
+  with:
+    ibmi-address: ${{ secrets.IBMI_ADDRESS }}
+    ibmi-userid: ${{ secrets.IBMI_USERID }}
+    ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+    packager-lib: PACKAGER
+    stmf-artifact: artifacts/package.savf
+    default-lib: MYAPPLIB
+    copy-data: '*YES'
+    backup-savf: MYAPPLIB/ROLLBACK
+```
+
+Optional `map-file` accepts a workspace-relative JSON file for library routing and data-preservation overrides. It can route objects to libraries other than `default-lib`; coordinate locks and authorities for all destinations. Outputs are `artifact-dir` and `manifest-path`. The root action also supports `operation: unpack` with the same inputs.
+
+### Reuse a Complete CI Workflow
+
+[`reusable-ibmi.yml`](.github/workflows/reusable-ibmi.yml) checks out the caller's project, runs TOBi, optionally compiles/runs its iRPGUnit suite, packages objects, publishes available test results, and uploads artifacts. It does not use this repository's fixed sample object selection or automatically restore packages.
+
+```yaml
+name: IBM i CI
+on: workflow_dispatch
+permissions:
+  contents: read
+  checks: write
+jobs:
+  ci:
+    uses: JDubbTX/ibm-i-packager/.github/workflows/reusable-ibmi.yml@1.1.0
+    with:
+      action-ref: '1.1.0'
+      build-lib: MYAPPLIB
+      build-dir: /home/builder/builds/my-application
+      test-src: test/qrpglesrc/mytest.test.sqlrpgle
+      test-pgm: TMYTEST
+      objects: 'MYAPP*'
+    secrets:
+      IBMI_ADDRESS: ${{ secrets.IBMI_ADDRESS }}
+      IBMI_USERID: ${{ secrets.IBMI_USERID }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+```
+
+Keep `action-ref` identical to the workflow ref, or pin both to the same full commit SHA. The workflow checks out its implementation separately under `.ibmi-packager-action` (a reserved directory), so it never runs action code from the consumer project by accident. It serializes jobs by `build-lib` within the caller's repository. Set `test-src: '*NONE'` to skip tests. Consumer test fixtures must be isolated or serialized independently; unlike this repository's dogfood pipeline, this workflow does not rewrite arbitrary consumer test sources.
+
+See the metadata files for all inputs and defaults. Other optional workflow inputs include `environment`, `rpgunit-lib`, `object-types`, `version`, and `ibmi-ssh-port`.
+
+### Publish the Marketplace Listing
+
+Only the root action gets a Marketplace listing; the subdirectory actions and reusable workflow remain callable from the same release.
+
+1. Commit and push the prepared files to GitLab. Confirm mirroring, CI tests, and action smoke tests succeed on GitHub.
+2. Create a **new** plain-semver tag such as `1.1.0` in GitLab, pointing at the verified commit. Do not move `1.0.0`. Wait for the GitLab Catalog release and GitHub mirrored tag checks.
+3. In GitHub, open **Releases > Draft a new release** and select the existing mirrored tag.
+4. Select **Publish this Action to the GitHub Marketplace**. The account owner must review and accept the Marketplace Developer Agreement if prompted; publication also requires two-factor authentication.
+5. Resolve any unique-name/metadata validation messages, choose **Deployment** as the primary category, enter release notes, and publish.
+6. Verify the Marketplace listing and invoke the tagged action from a separate repository before recommending the release to consumers.
+
+GitHub release records are not mirrored from GitLab. Marketplace publication is a separate browser step and is not performed automatically by CI.
+
+---
+
 ## GitHub Actions and GitLab Synchronization
 
 GitLab is the source of truth at [ibm-i-stuff/ibm-i-packager](https://gitlab.com/ibm-i-stuff/ibm-i-packager).
@@ -417,6 +572,10 @@ Make changes in GitLab, including any changes proposed on GitHub. Do not merge d
 4. Optionally restores the sample package into the GitHub build library when **deploy_samples** is selected for a manual run.
 5. Returns container-created artifacts to the runner user's ownership, then publishes available JUnit XML as an **iRPGUnit integration tests** check and a workflow **Summary** report, listing individual tests, durations, and failure details. Reports are published even when the test step fails; if no XML was produced, reporting is skipped without hiding the original build/test failure.
 6. Uploads available JUnit XML, build logs, packages, and manifests, including on failure.
+
+Select the **ibmi** job in an Actions run to inspect each step and expand its logs. The following example shows a successful build, test, package, reporting, and artifact upload run:
+
+![GitHub Actions ibmi job showing successful build, test, packaging, test reporting, and artifact upload steps](docs/images/github-actions-workflow.png)
 
 Test reporting uses `dorny/test-reporter` with read access to repository contents and permission to write checks. Open an Actions run's **Summary** or its **iRPGUnit integration tests** check to view results without downloading the XML. This complements the downloadable report; it is not a separate GitLab-style Tests tab.
 
@@ -661,6 +820,20 @@ The automated integration test suite in [`test/qrpglesrc/pkgtest.test.sqlrpgle`]
 1. Install the [IBM i Testing](https://marketplace.visualstudio.com/items?itemName=IBM.vscode-ibmi-testing) extension and ensure `RPGUNIT` is in your library list (`preUsrlibl` in [`iproj.json`](iproj.json)).
 2. Open the **Testing** activity view in VS Code (`pkgtest.test.sqlrpgle` is discovered automatically via [`.vscode/testing.json`](.vscode/testing.json)).
 3. Click **Run Test** (or **Run with Coverage**) on the test suite or any individual test procedure.
+
+![VS Code Testing view showing all six iRPGUnit integration tests passing](docs/images/vscode-test-results.png)
+
+### Viewing Test Results in GitLab
+
+Open the IBM i child pipeline, select the **Tests** tab, and choose **ibmi:test** to view the iRPGUnit results published from JUnit XML. The report lists each test's status and execution time; select **View details** to inspect an individual result.
+
+![GitLab pipeline Tests tab showing six passing iRPGUnit tests with zero failures and errors](docs/images/gitlab-test-results.png)
+
+### Viewing Test Results in GitHub
+
+Open a GitHub Actions run and select **Summary** to view the **iRPGUnit integration tests** report, including passed, failed, and skipped counts and individual test results. Select the **iRPGUnit integration tests** check in the sidebar for the dedicated test report.
+
+![GitHub Actions summary showing all six iRPGUnit integration tests passing with zero failures or skipped tests](docs/images/github-test-results.png)
 
 ---
 

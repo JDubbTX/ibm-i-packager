@@ -1,0 +1,109 @@
+name: Reusable IBM i CI
+on:
+  workflow_call:
+    inputs:
+      action-ref:
+        description: Packager action version; match the ref used to call this workflow
+        type: string
+        required: true
+      build-lib:
+        description: Dedicated IBM i build library
+        type: string
+        required: true
+      build-dir:
+        description: Dedicated absolute IFS build directory
+        type: string
+        required: true
+      environment:
+        description: GitHub deployment environment (optional)
+        type: string
+        default: ''
+      test-src:
+        description: Consumer's iRPGUnit source path, or *NONE
+        type: string
+        default: '*NONE'
+      test-pgm:
+        type: string
+        default: TPKGTEST
+      rpgunit-lib:
+        type: string
+        default: RPGUNIT
+      objects:
+        type: string
+        default: '*ALL'
+      object-types:
+        type: string
+        default: '*ALL'
+      version:
+        type: string
+        default: ''
+      ibmi-ssh-port:
+        type: string
+        default: '22'
+    secrets:
+      IBMI_ADDRESS:
+        required: true
+      IBMI_USERID:
+        required: true
+      SSH_PRIVATE_KEY:
+        required: true
+      SSH_KNOWN_HOSTS:
+        required: true
+permissions:
+  contents: read
+  checks: write
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: ibmi-${{ inputs.build-lib }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Check out the versioned packager action
+        uses: actions/checkout@v7
+        with:
+          repository: JDubbTX/ibm-i-packager
+          ref: ${{ inputs.action-ref }}
+          path: .ibmi-packager-action
+          persist-credentials: false
+      - name: Build, test, and package consumer sources
+        uses: ./.ibmi-packager-action
+        with:
+          operation: ci
+          ibmi-address: ${{ secrets.IBMI_ADDRESS }}
+          ibmi-userid: ${{ secrets.IBMI_USERID }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
+          ibmi-ssh-port: ${{ inputs.ibmi-ssh-port }}
+          src-lib: ${{ inputs.build-lib }}
+          build-dir: ${{ inputs.build-dir }}
+          test-src: ${{ inputs.test-src }}
+          test-pgm: ${{ inputs.test-pgm }}
+          rpgunit-lib: ${{ inputs.rpgunit-lib }}
+          objects: ${{ inputs.objects }}
+          object-types: ${{ inputs.object-types }}
+          version: ${{ inputs.version }}
+      - name: Publish tests
+        if: ${{ always() && hashFiles('rpgunit-results.xml') != '' }}
+        uses: dorny/test-reporter@v3
+        with:
+          name: iRPGUnit integration tests
+          path: rpgunit-results.xml
+          reporter: java-junit
+          use-actions-summary: 'true'
+          collapsed: never
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ibmi-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            artifacts/
+            build-logs/
+            rpgunit-results.xml
+          if-no-files-found: warn
