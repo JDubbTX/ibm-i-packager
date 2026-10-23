@@ -101,7 +101,7 @@ class GitHubCITests(unittest.TestCase):
         with (ibmi.ROOT / ".github/workflows/ibmi.yml").open() as source:
             workflow = yaml.load(source, Loader=yaml.BaseLoader)
         self.assertEqual(set(workflow["on"]), {"push", "workflow_dispatch"})
-        self.assertEqual(workflow["permissions"], {"contents": "read"})
+        self.assertEqual(workflow["permissions"], {"contents": "read", "checks": "write"})
         self.assertEqual(workflow["concurrency"]["cancel-in-progress"], "false")
 
     def test_workflow_restores_container_artifacts_before_upload_even_on_failure(self):
@@ -116,6 +116,39 @@ class GitHubCITests(unittest.TestCase):
         for path in ("rpgunit-results.xml", "build-logs", "artifacts", "artifacts-samples"):
             self.assertIn(path, steps[restore]["run"])
         subprocess.run(["bash", "-n"], input=steps[restore]["run"], text=True, check=True)
+
+    def test_reporter_runs_after_ownership_restore_and_on_test_failure(self):
+        with (ibmi.ROOT / ".github/workflows/ibmi.yml").open() as source:
+            steps = yaml.load(source, Loader=yaml.BaseLoader)["jobs"]["ibmi"]["steps"]
+        restore = next(i for i, step in enumerate(steps)
+                       if step.get("name") == "Restore artifact ownership")
+        report = next(i for i, step in enumerate(steps)
+                      if step.get("uses", "").startswith("dorny/test-reporter@"))
+        self.assertLess(restore, report)
+        self.assertIn("always()", steps[report]["if"])
+        self.assertIn("hashFiles('rpgunit-results.xml')", steps[report]["if"])
+        self.assertEqual(steps[report]["with"]["path"], "rpgunit-results.xml")
+        self.assertEqual(steps[report]["with"]["list-tests"], "all")
+        self.assertEqual(steps[report]["with"]["use-actions-summary"], "true")
+        self.assertEqual(steps[report]["with"]["fail-on-error"], "true")
+
+    def test_failed_remote_tests_still_download_junit_and_preserve_exit_code(self):
+        with (ibmi.ROOT / "templates/ibmi-cicd.yml").open() as source:
+            spec, jobs = yaml.safe_load_all(source)
+        jobs["ibmi:test"]["before_script"] = [
+            "run_ssh() { return 7; }",
+            'run_scp_from() { printf \'<testsuite><testcase><failure/></testcase></testsuite>\' > "$2"; }',
+        ]
+        with patch.object(ibmi.yaml, "safe_load_all", return_value=(spec, jobs)):
+            script = ibmi.component_script("ibmi-cicd", "ibmi:test", {})
+        with tempfile.TemporaryDirectory() as directory:
+            env = dict(os.environ, CI_PROJECT_DIR=directory, REMOTE_DIR="/remote")
+            result = subprocess.run(["bash", "-c", script], env=env,
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 7, result.stderr)
+            report = Path(directory) / "rpgunit-results.xml"
+            self.assertIn("<failure/>", report.read_text())
+            self.assertIn("<failure/>", result.stdout)
 
     def run_pipeline(self, deploy=False, fail_stage=None):
         actual_root = ibmi.ROOT

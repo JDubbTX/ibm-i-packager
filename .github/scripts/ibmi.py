@@ -31,7 +31,11 @@ def component_script(component, job_name, overrides):
         raise ValueError("Unknown component inputs: " + ", ".join(sorted(unknown)))
     inputs.update(overrides)
     job = jobs[job_name]
-    commands = job["before_script"] + job["script"]
+    scripts = job["script"]
+    if job_name == "ibmi:test":
+        scripts = (["test_rc=0", scripts[0].rstrip() + " || test_rc=$?"]
+                   + scripts[1:] + ['exit "$test_rc"'])
+    commands = job["before_script"] + scripts
     if not all(isinstance(command, str) for command in commands):
         raise ValueError("Component commands must be strings")
     script = INPUT.sub(lambda match: inputs[match[1]], "\n".join(commands))

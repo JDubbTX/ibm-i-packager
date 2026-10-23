@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: read
+  checks: write
 
 # The test fixture libraries are shared by every GitHub run, regardless of ref.
 concurrency:
@@ -60,6 +61,20 @@ jobs:
               sudo chown -R "$(id -u):$(id -g)" "$path"
             fi
           done
+
+      - name: Publish iRPGUnit test results
+        if: ${{ always() && hashFiles('rpgunit-results.xml') != '' }}
+        uses: dorny/test-reporter@v3
+        with:
+          name: iRPGUnit integration tests
+          path: rpgunit-results.xml
+          reporter: java-junit
+          use-actions-summary: 'true'
+          report-title: iRPGUnit integration tests
+          list-suites: all
+          list-tests: all
+          fail-on-error: 'true'
+          fail-on-empty: 'true'
 
       - name: Upload test results, packages, manifests, and build logs
         if: always()
