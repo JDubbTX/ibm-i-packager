@@ -71,6 +71,20 @@ jobs:
           reporter: java-junit
           use-actions-summary: 'true'
           report-title: iRPGUnit integration tests
+          collapsed: never
+          list-suites: all
+          list-tests: all
+          fail-on-error: 'true'
+          fail-on-empty: 'true'
+
+      - name: Publish iRPGUnit test check
+        if: ${{ always() && hashFiles('rpgunit-results.xml') != '' }}
+        uses: dorny/test-reporter@v3
+        with:
+          name: iRPGUnit integration tests
+          path: rpgunit-results.xml
+          reporter: java-junit
+          use-actions-summary: 'false'
           list-suites: all
           list-tests: all
           fail-on-error: 'true'

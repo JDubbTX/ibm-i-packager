@@ -131,6 +131,11 @@ class GitHubCITests(unittest.TestCase):
         self.assertEqual(steps[report]["with"]["list-tests"], "all")
         self.assertEqual(steps[report]["with"]["use-actions-summary"], "true")
         self.assertEqual(steps[report]["with"]["fail-on-error"], "true")
+        check = next(step for step in steps
+                     if step.get("name") == "Publish iRPGUnit test check")
+        self.assertIn("always()", check["if"])
+        self.assertEqual(check["with"]["use-actions-summary"], "false")
+        self.assertEqual(check["with"]["path"], "rpgunit-results.xml")
 
     def test_failed_remote_tests_still_download_junit_and_preserve_exit_code(self):
         with (ibmi.ROOT / "templates/ibmi-cicd.yml").open() as source:
