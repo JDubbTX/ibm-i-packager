@@ -415,7 +415,7 @@ Make changes in GitLab, including any changes proposed on GitHub. Do not merge d
 2. Compiles and runs iRPGUnit, requiring a nonempty JUnit report with no failures/errors.
 3. Packages the tools and sample application as `.savf` files with HTML manifests.
 4. Optionally restores the sample package into the GitHub build library when **deploy_samples** is selected for a manual run.
-5. Uploads available JUnit XML, build logs, packages, and manifests, including on failure.
+5. Returns container-created artifacts to the runner user's ownership, then uploads available JUnit XML, build logs, packages, and manifests, including on failure.
 
 The Linux runner uses Alpine 3.20 in Docker. [`ibmi.py`](.github/scripts/ibmi.py) renders and runs the existing component `before_script`/`script` commands; it is a project-specific adapter, not a general GitLab pipeline executor. Sample object selections and package names come from [the GitLab child pipeline](.gitlab/ci/ibmi-pipeline.yml). This keeps SSH retries, host-key verification, compiler options, and packaging commands aligned without duplicating the CI implementation. GitLab-specific scheduling, artifact handling, and release publication are not executed by the adapter.
 

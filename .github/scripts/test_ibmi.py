@@ -104,6 +104,19 @@ class GitHubCITests(unittest.TestCase):
         self.assertEqual(workflow["permissions"], {"contents": "read"})
         self.assertEqual(workflow["concurrency"]["cancel-in-progress"], "false")
 
+    def test_workflow_restores_container_artifacts_before_upload_even_on_failure(self):
+        with (ibmi.ROOT / ".github/workflows/ibmi.yml").open() as source:
+            steps = yaml.load(source, Loader=yaml.BaseLoader)["jobs"]["ibmi"]["steps"]
+        restore = next(i for i, step in enumerate(steps)
+                       if step.get("name") == "Restore artifact ownership")
+        upload = next(i for i, step in enumerate(steps)
+                      if step.get("uses", "").startswith("actions/upload-artifact@"))
+        self.assertLess(restore, upload)
+        self.assertEqual(steps[restore]["if"], "always()")
+        for path in ("rpgunit-results.xml", "build-logs", "artifacts", "artifacts-samples"):
+            self.assertIn(path, steps[restore]["run"])
+        subprocess.run(["bash", "-n"], input=steps[restore]["run"], text=True, check=True)
+
     def run_pipeline(self, deploy=False, fail_stage=None):
         actual_root = ibmi.ROOT
         with tempfile.TemporaryDirectory() as directory:
