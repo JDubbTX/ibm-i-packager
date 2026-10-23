@@ -102,7 +102,6 @@ def configuration(raw, workspace, env):
             relative_path(test_source, workspace, "test-src")
             if not (workspace / test_source).is_file():
                 raise ValueError("Test source does not exist: " + test_source)
-        inputs["packager_lib"] = source
         ci = {"build_lib": source, "test_src": test_source,
               "test_pgm": require_match(raw.get("test-pgm") or "TPKGTEST", NAME, "test-pgm"),
               "rpgunit_lib": require_match(raw.get("rpgunit-lib") or "RPGUNIT", NAME, "rpgunit-lib")}

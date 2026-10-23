@@ -28,7 +28,7 @@ inputs:
     description: Source library for pack, or build library for ci
     default: PACKAGER
   packager-lib:
-    description: Library containing installed PACK and UNPACK commands; ci uses src-lib
+    description: Library containing installed PACK and UNPACK commands
     default: PACKAGER
   objects:
     description: Space-separated object names or generic patterns

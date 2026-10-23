@@ -1,5 +1,32 @@
 name: Reusable IBM i CI
 on:
+  workflow_dispatch:
+    inputs:
+      action-ref:
+        description: Packager action ref to exercise
+        type: string
+        required: true
+        default: main
+      build-lib:
+        description: Dedicated IBM i build library
+        type: string
+        required: true
+      build-dir:
+        description: Dedicated absolute IFS build directory
+        type: string
+        required: true
+      packager-lib:
+        description: Installed packager library
+        type: string
+        default: PACKAGER
+      environment:
+        description: Environment containing IBM i secrets
+        type: string
+        default: ibmi-github
+      test-src:
+        description: iRPGUnit source path, or *NONE
+        type: string
+        default: '*NONE'
   workflow_call:
     inputs:
       action-ref:
@@ -14,6 +41,10 @@ on:
         description: Dedicated absolute IFS build directory
         type: string
         required: true
+      packager-lib:
+        description: Library containing installed PACK and UNPACK commands
+        type: string
+        default: PACKAGER
       environment:
         description: GitHub deployment environment (optional)
         type: string
@@ -81,6 +112,7 @@ jobs:
           ssh-known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
           ibmi-ssh-port: ${{ inputs.ibmi-ssh-port }}
           src-lib: ${{ inputs.build-lib }}
+          packager-lib: ${{ inputs.packager-lib }}
           build-dir: ${{ inputs.build-dir }}
           test-src: ${{ inputs.test-src }}
           test-pgm: ${{ inputs.test-pgm }}

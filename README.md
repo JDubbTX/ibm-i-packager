@@ -404,7 +404,7 @@ The root [`action.yml`](action.yml) defines **IBM i Packager**, supporting `oper
 ### Requirements and Safety
 
 - Use a standard Ubuntu GitHub runner with Docker and Python 3. Container jobs and Windows/macOS runners are not supported. Runtime dependencies are installed in an Alpine image, not on the IBM i.
-- `PACK`/`UNPACK` must already be installed in `packager-lib` for standalone operations. `operation: ci` builds the consumer's checked-out sources using TOBi and installs command aliases in `src-lib`. The consumer must use this project's compatible TOBi library variable `lib1`, build the packager tools, or otherwise provide compatible commands in that library.
+- `PACK`/`UNPACK` must be installed in `packager-lib` (default `PACKAGER`). `operation: ci` builds the consumer's checked-out sources using TOBi; its build configuration must use the compatible library variable `lib1`. If the consumer builds the packager tools themselves, set `packager-lib` to the same library as `src-lib`/`build-lib` to use the newly compiled commands.
 - Pass credentials through GitHub secrets. `ssh-private-key` is base64-encoded; `ssh-known-hosts` must contain verified host-key entries. SSH uses strict host checking and the existing ten-attempt connection retry policy.
 - Source/target library names and command inputs are validated before SSH. Use uppercase IBM i names. Version stamps are limited to 10 letters, digits, dots, underscores, or hyphens; the default is the first eight characters of the caller's commit SHA. Paths must be shell-safe and workspace-relative, except for the remote absolute `build-dir`.
 - Actions deliberately expose the portable `*STMF` save-file interface. For advanced QSYS `*SAVF` destinations or inline `LIBMAP`, use the GitLab components or native commands; JSON `map-file` routing is available for the unpack action.
@@ -502,7 +502,9 @@ jobs:
 
 Keep `action-ref` identical to the workflow ref, or pin both to the same full commit SHA. The workflow checks out its implementation separately under `.ibmi-packager-action` (a reserved directory), so it never runs action code from the consumer project by accident. It serializes jobs by `build-lib` within the caller's repository. Set `test-src: '*NONE'` to skip tests. Consumer test fixtures must be isolated or serialized independently; unlike this repository's dogfood pipeline, this workflow does not rewrite arbitrary consumer test sources.
 
-See the metadata files for all inputs and defaults. Other optional workflow inputs include `environment`, `rpgunit-lib`, `object-types`, `version`, and `ibmi-ssh-port`.
+See the metadata files for all inputs and defaults. Other optional workflow inputs include `packager-lib`, `environment`, `rpgunit-lib`, `object-types`, `version`, and `ibmi-ssh-port`.
+
+For release validation in this repository, the same workflow also supports **Actions > Reusable IBM i CI > Run workflow**. Supply an isolated build library/directory, the installed packager library, and the GitHub environment containing the IBM i secrets. This exercises the consumer-facing `ci` action path rather than the repository-specific dogfood adapter.
 
 ### Publish the Marketplace Listing
 

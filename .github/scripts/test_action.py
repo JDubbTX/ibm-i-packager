@@ -53,7 +53,7 @@ class ConsumerActionTests(unittest.TestCase):
             self.assertEqual(operation, "ci")
             self.assertEqual(ci["test_src"], "suite.test.sqlrpgle")
             self.assertEqual(ci["build_lib"], "MYAPP")
-            self.assertEqual(inputs["packager_lib"], "MYAPP")
+            self.assertEqual(inputs["packager_lib"], "TOOLS")
             self.assertEqual(build_dir, "/home/builder/ci-app")
 
     def test_rejects_invalid_or_injectable_inputs_before_execution(self):
