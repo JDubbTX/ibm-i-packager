@@ -53,6 +53,15 @@ jobs:
               python3 .github/scripts/ibmi.py
             '
 
+      - name: Restore artifact ownership
+        if: always()
+        run: |
+          for path in rpgunit-results.xml build-logs artifacts artifacts-samples; do
+            if [[ -e "$path" ]]; then
+              sudo chown -R "$(id -u):$(id -g)" "$path"
+            fi
+          done
+
       - name: Exercise the Marketplace action
         uses: ./
         with:
@@ -95,15 +104,6 @@ jobs:
           default-lib: ${{ vars.OBJECT_LIB || 'GHPACK' }}
           stmf-artifact: artifacts/convenience-package.savf
           manifest-name: convenience-unpack-manifest.html
-
-      - name: Restore artifact ownership
-        if: always()
-        run: |
-          for path in rpgunit-results.xml build-logs artifacts artifacts-samples; do
-            if [[ -e "$path" ]]; then
-              sudo chown -R "$(id -u):$(id -g)" "$path"
-            fi
-          done
 
       - name: Publish iRPGUnit test results
         if: ${{ always() && hashFiles('rpgunit-results.xml') != '' }}

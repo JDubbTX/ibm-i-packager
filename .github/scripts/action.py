@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import uuid
 
 from ibmi import component_script, verify_test_results
 
@@ -114,6 +115,13 @@ def main():
     workspace = Path.cwd().resolve()
     raw = json.loads(os.environ["ACTION_INPUTS"])
     operation, inputs, ci, build_dir = configuration(raw, workspace, os.environ)
+    output = workspace / inputs["artifact_dir"]
+    output.mkdir(parents=True, exist_ok=True)
+    if not os.access(output, os.W_OK):
+        raise PermissionError("artifact-dir is not writable by the runner user; restore its ownership")
+    for name in (inputs["manifest_name"], inputs.get("stmf_name")):
+        if name and (output / name).exists() and not os.access(output / name, os.W_OK):
+            raise PermissionError("An output file is not writable by the runner user: " + name)
     home = Path(os.environ["HOME"])
     home.mkdir(mode=0o700, parents=True, exist_ok=True)
     env = dict(os.environ, IBMI_ADDRESS=raw["ibmi-address"], IBMI_USERID=raw["ibmi-userid"],
@@ -127,8 +135,10 @@ def main():
                        ("test", "ibmi-cicd", "ibmi:test", ci)])
     stages.append(("unpack" if operation == "unpack" else "pack",
                    "unpack" if operation == "unpack" else "pack", "$[[ inputs.job_name ]]", inputs))
+    invocation = uuid.uuid4().hex
     for stage, component, job, options in stages:
-        env["CI_JOB_ID"] = "gh_{}_{}_{}".format(env["GITHUB_RUN_ID"], env["GITHUB_RUN_ATTEMPT"], stage)
+        env["CI_JOB_ID"] = "gh_{}_{}_{}_{}".format(
+            env["GITHUB_RUN_ID"], env["GITHUB_RUN_ATTEMPT"], stage, invocation)
         print("::group::IBM i " + stage, flush=True)
         try:
             script = component_script(component, job, options)

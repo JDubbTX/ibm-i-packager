@@ -120,6 +120,39 @@ class ConsumerActionTests(unittest.TestCase):
                         action.main()
                     self.assertEqual(run.call_count, 1)
 
+    def test_invocations_in_same_workflow_get_distinct_remote_workspaces(self):
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            env = dict(os.environ, ACTION_INPUTS=json.dumps(self.inputs()),
+                       GITHUB_SHA="a" * 40, GITHUB_RUN_ID="123", GITHUB_RUN_ATTEMPT="1",
+                       HOME=str(workspace / "home"))
+            with patch.object(action.Path, "cwd", return_value=workspace):
+                with patch.dict(os.environ, env), patch.object(action.subprocess, "run") as run:
+                    action.main()
+                    action.main()
+            job_ids = [call.kwargs["env"]["CI_JOB_ID"] for call in run.call_args_list]
+            self.assertEqual(len(set(job_ids)), 2)
+
+    def test_unwritable_artifact_directory_fails_before_ssh(self):
+        with tempfile.TemporaryDirectory() as directory:
+            workspace = Path(directory)
+            env = dict(os.environ, ACTION_INPUTS=json.dumps(self.inputs()),
+                       GITHUB_SHA="a" * 40, GITHUB_RUN_ID="123", GITHUB_RUN_ATTEMPT="1")
+            with patch.object(action.Path, "cwd", return_value=workspace):
+                with patch.dict(os.environ, env), patch.object(action.os, "access", return_value=False):
+                    with patch.object(action.subprocess, "run") as run:
+                        with self.assertRaisesRegex(PermissionError, "not writable"):
+                            action.main()
+                        run.assert_not_called()
+
+    def test_dogfood_restores_ownership_before_non_root_actions(self):
+        with (ibmi.ROOT / ".github/workflows/ibmi.yml").open() as source:
+            steps = yaml.safe_load(source)["jobs"]["ibmi"]["steps"]
+        restore = next(i for i, step in enumerate(steps)
+                       if step.get("name") == "Restore artifact ownership")
+        smoke = next(i for i, step in enumerate(steps) if step.get("uses") == "./")
+        self.assertLess(restore, smoke)
+
     def test_rendered_pack_and_unpack_execute_with_mock_transport(self):
         with tempfile.TemporaryDirectory() as directory:
             workspace = Path(directory)
