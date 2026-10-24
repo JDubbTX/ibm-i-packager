@@ -1,6 +1,6 @@
 # IBM i Packager (`PACK` / `#PACK` & `UNPACK` / `#UNPACK`)
 
-**Native, dependency-aware release packaging, version stamping, and zero-data-loss deployment for IBM i CI/CD pipelines.**
+**Native, dependency-aware release packaging, version stamping, and data-preserving deployment for IBM i CI/CD pipelines.**
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![IBM i](https://img.shields.io/badge/IBM%20i-7.4%2B-054ADA.svg)](https://www.ibm.com/it-infrastructure/power/os/ibm-i)
@@ -16,7 +16,7 @@ Modern IBM i development teams use Git, VS Code ([Code for IBM i](https://github
 **IBM i Packager** solves this with two native CL commands backed by `SQLRPGLE` engines (`PACKR` and `UNPACKR`):
 
 1. **`PACK` (`#PACK`)** — Discovers objects in a build library (by name, generic wildcard, or object type), stamps a **10-character release version** directly onto each object's User-Defined Attribute (`USRDFNATR`) via the `QLICOBJD` API, packages them into a QSYS Save File (`*SAVF`) or portable IFS stream file (`*STMF`), and generates a styled HTML Package Manifest.
-2. **`UNPACK` (`#UNPACK`)** — Inspects a package Save File or IFS stream file via the `QSRLSAVF` (`SAVF0200`) API, routes objects to one or more target libraries (e.g., `PRODDTA` vs. `PRODPGM`) using inline rules or a JSON mapping file (`MAPFILE`), creates a pre-deployment rollback backup (`BKPSAVF`), and restores objects in **strict 8-tier dependency precedence order** while preserving **100% of existing object authorities** and **migrating existing Physical File / SQL Table data**.
+2. **`UNPACK` (`#UNPACK`)** — Inspects a package Save File or IFS stream file via the `QSRLSAVF` (`SAVF0200`) API, routes objects to one or more target libraries (e.g., `PRODDTA` vs. `PRODPGM`) using inline rules or a JSON mapping file (`MAPFILE`), optionally creates a pre-deployment rollback backup (`BKPSAVF`), and restores objects in **nine dependency precedence tiers** while reapplying existing object authorities and optionally migrating existing Physical File / SQL Table data.
 
 ---
 
@@ -26,9 +26,9 @@ Modern IBM i development teams use Git, VS Code ([Code for IBM i](https://github
   Stamps every packaged object—and the package Save File itself—with a 10-character version identifier in its QSYS User-Defined Attribute (`QLICOBJD` key `9`). Query deployed versions anytime via `DSPOBJD` or `QSYS2.OBJECT_STATISTICS`.
 - **All Traditional QSYS & SQL Object Types**
   Supports `*PGM`, `*SRVPGM`, `*MODULE`, `*BNDDIR`, `*FILE` (`PF`, `LF`, `DSPF`, `PRTF`, SQL `TABLE`, `VIEW`, `INDEX`, `MQT`), `*SQLPKG`, `*DTAARA`, `*DTAQ`, `*MSGF`, `*CMD`, `*PNLGRP`, `*MENU`, `*JOBD`, `*CLS`, `*SBSD`, `*AUTL`, and more.
-- **8-Tier Dependency Precedence Unpacking**
+- **Nine-Tier Dependency Precedence Unpacking**
   Automatically orders objects before restoring so physical tables exist before logical views, binding directories and modules exist before service programs, and programs exist before commands.
-- **Zero-Data-Loss Database Upgrades (`CPYDTA` & `preserveData`)**
+- **Data-Preserving Database Upgrades (`CPYDTA` & `preserveData`)**
   When replacing an existing Physical File or SQL Table:
   - Automatically identifies dependent Logical Files / Views (`DSPDBR`), temporarily suspends un-packaged LFs to a staging save file, and restores them after the PF is upgraded.
   - Migrates existing production data into the newly unpacked table layout via `CPYF FROMMBR(*ALL) TOMBR(*FROMMBR) MBROPT(*REPLACE) FMTOPT(*MAP *DROP)`.
@@ -39,6 +39,8 @@ Modern IBM i development teams use Git, VS Code ([Code for IBM i](https://github
   Build everything in a single CI build library and route `*FILE PF`/`LF` and `*DTAARA` to `PRODDTA` while routing `*PGM`, `*SRVPGM`, and `DSPF`/`PRTF` to `PRODPGM`.
 - **Automatic Rollback Backups & HTML Audit Manifests**
   Optionally saves all existing target objects being replaced into `BKPSAVF` prior to deployment and generates self-contained HTML manifests for CI/CD pipeline artifacts.
+
+Data migration uses field mapping and drops unmatched fields; it is not a guarantee of lossless schema conversion. Validate changes in a non-production library and retain an independent backup before deployment. `BKPSAVF` creates a backup, not an automatic rollback.
 
 ---
 
@@ -53,7 +55,7 @@ flowchart LR
     end
 
     subgraph Deploy ["2. Precedence Unpack (#UNPACK)"]
-        SAVF -->|"QSRLSAVF (SAVF0200)\n+ JSON MAPFILE"| SORT["Sort by 8 Dependency\nPrecedence Tiers"]
+        SAVF -->|"QSRLSAVF (SAVF0200)\n+ JSON MAPFILE"| SORT["Sort by 9 Dependency\nPrecedence Tiers"]
         SORT -->|"Pre-Unpack Backup"| BKP["Rollback Save File\n(BKPSAVF)"]
         SORT -->|"Route + Preserve Auth\n+ CPYF *MAP *DROP"| DTA["Target Data Lib\n(e.g. PRODDTA)"]
         SORT -->|"Route + Preserve Auth"| PGM["Target Program Lib\n(e.g. PRODPGM)"]
@@ -100,17 +102,15 @@ flowchart LR
 
 ### 4. Verify Your System Readiness via SQL
 
-Run the following query in **ACS Run SQL Scripts** or **Db2 for i** in VS Code to confirm your OS version and Db2 for i PTF Group level:
+Run the following query in **ACS Run SQL Scripts** or **Db2 for i** in VS Code to check the installed Db2 for i PTF group level and status. Confirm the OS release separately with `DSPSFWRSC`:
 
 ```sql
-SELECT OS_VERSION || '.' || OS_RELEASE AS IBM_I_VERSION,
-       PTF_GROUP_NAME,
-       PTF_GROUP_LEVEL_AVAILABLE,
-       PTF_GROUP_LEVEL_INSTALLED,
+SELECT PTF_GROUP_NAME,
+       PTF_GROUP_LEVEL,
        PTF_GROUP_STATUS
   FROM QSYS2.GROUP_PTF_INFO
  WHERE PTF_GROUP_NAME IN ('SF99703', 'SF99704', 'SF99950')
- ORDER BY PTF_GROUP_LEVEL_INSTALLED DESC;
+ ORDER BY PTF_GROUP_LEVEL DESC;
 ```
 
 ---
@@ -230,11 +230,11 @@ Discovers matching objects in `SRCLIB`, stamps the 10-character `VERSION` into e
 | **`OBJTYPE`** | Up to 20 QSYS object types | `*ALL` | Object types to include (`*ALL`, `*PGM`, `*SRVPGM`, `*FILE`, `*DTAARA`, `*CMD`, etc.). |
 | **`VERSION`** | `CHAR(10)` | *Required* | 10-character release version stamped into `USRDFNATR` on every packaged object and the save file (e.g., `'v1.4.2-rc1'`). |
 | **`OUTTYPE`** | `*SAVF` \| `*STMF` | `*SAVF` | Output destination type: QSYS Save File (`*SAVF`) or IFS stream file (`*STMF`). |
-| **`SAVF`** | `LIB/SAVF` | `QGPL/PKGSAVF` | Target Save File when `OUTTYPE(*SAVF)`. Created automatically if it does not exist. |
-| **`STMF`** | IFS path (`CHAR(256)`) | `'/tmp/package.savf'` | Target IFS file or directory when `OUTTYPE(*STMF)`. If an existing directory is passed, `#PACK` names the file `<SRCLIB>_<VERSION>.savf`. |
+| **`SAVF`** | `LIB/SAVF` | `QTEMP/PKGSAVF` | Target Save File when `OUTTYPE(*SAVF)`. Created automatically if it does not exist. |
+| **`STMF`** | IFS path (`CHAR(256)`) | `*NONE` | Required when `OUTTYPE(*STMF)`. If an existing directory is passed, `#PACK` names the file `<SRCLIB>_<VERSION>.savf`. |
 | **`TGTRLS`** | `*CURRENT` \| `*PRV` \| `VxRxMx` | `*CURRENT` | Target OS release passed to `SAVOBJ`. |
 | **`CLEAR`** | `*YES` \| `*NO` | `*YES` | Clear/overwrite existing Save File or IFS stream file. |
-| **`MANIFEST`** | `*AUTO` \| `*NONE` \| IFS path | `*AUTO` | Output path for the HTML Package Manifest (`*AUTO` writes `/tmp/pack_<SRCLIB>_<VERSION>_manifest.html`). |
+| **`MANIFEST`** | `*AUTO` \| `*NONE` \| IFS path | `*AUTO` | Output path for the HTML Package Manifest. For `*SAVF`, `*AUTO` writes `/tmp/pack_<SRCLIB>_<VERSION>_manifest.html`; for `*STMF`, it derives a sibling `<stem>_manifest.html`. |
 
 #### Examples
 
@@ -284,14 +284,14 @@ Inspects a package Save File or IFS stream file, resolves each object's target l
 | Parameter | Values / Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | **`INPTYPE`** | `*SAVF` \| `*STMF` | `*SAVF` | Package source type: QSYS Save File (`*SAVF`) or IFS stream file (`*STMF`). |
-| **`SAVF`** | `LIB/SAVF` | `QGPL/PKGSAVF` | Input Save File when `INPTYPE(*SAVF)`. |
-| **`STMF`** | IFS path (`CHAR(256)`) | `'/tmp/package.savf'` | Input IFS stream file when `INPTYPE(*STMF)`. |
+| **`SAVF`** | `LIB/SAVF` | `QTEMP/PKGSAVF` | Input Save File when `INPTYPE(*SAVF)`. |
+| **`STMF`** | IFS path (`CHAR(256)`) | `*NONE` | Required when `INPTYPE(*STMF)`. |
 | **`DFTLIB`** | `*SAVLIB` \| `name` | `*SAVLIB` | Default target library when no `MAPFILE` or `LIBMAP` rule matches (`*SAVLIB` restores to the library the objects were saved from). |
 | **`LIBMAP`** | Up to 30 `(TYPE ATTR LIB)` tuples | `*NONE` | Inline routing rules mapping `(ObjectType, ExtendedAttribute) -> TargetLibrary` (e.g., `(*FILE PF PRODDTA)`). |
 | **`MAPFILE`** | `*NONE` \| IFS path | `*NONE` | Path to a JSON configuration file defining `defaultLibrary`, `defaultPreserveData`, `libraryMap`, and `fileOverrides`. |
 | **`CPYDTA`** | `*YES` \| `*NO` | `*YES` | Default behavior for migrating existing Physical File / SQL Table data when replacing a table (`CPYF FMTOPT(*MAP *DROP)`). |
 | **`BKPSAVF`** | `*NONE` \| `LIB/SAVF` | `*NONE` | Optional Rollback Save File. When specified, all existing target objects being replaced are saved here before unpacking begins. |
-| **`MANIFEST`** | `*AUTO` \| `*NONE` \| IFS path | `*AUTO` | Output path for the HTML Deployment Manifest (`*AUTO` writes `/tmp/unpack_<SAVF>_manifest.html`). |
+| **`MANIFEST`** | `*AUTO` \| `*NONE` \| IFS path | `*AUTO` | Output path for the HTML Deployment Manifest. For `*SAVF`, `*AUTO` writes `/tmp/unpack_<LIB>_<SAVF>_manifest.html`; for `*STMF`, it derives a sibling `<stem>_unpack_manifest.html`. |
 
 #### Unpack Dependency Precedence Tiers
 
@@ -399,7 +399,7 @@ Using a JSON mapping file (see [`examples/unpack-map.json`](examples/unpack-map.
 
 The root [`action.yml`](action.yml) defines **IBM i Packager**, supporting `operation: pack`, `unpack`, or `ci`. The [`pack`](actions/pack/action.yml) and [`unpack`](actions/unpack/action.yml) convenience actions expose operation-specific inputs. All three run the same implementation, using the existing GitLab component commands rather than a separate packaging engine.
 
-**Release preparation:** the examples below target the planned `1.1.0` release. They become usable at that ref only after the tested commit is tagged in GitLab and mirrored to GitHub. Until then, use `@main` for evaluation, not a stable production dependency. The existing `1.0.0` tag does not contain these actions.
+**Version `1.1.0` is tagged in GitLab and mirrored to GitHub**, so the examples below can use that ref now. GitHub Marketplace publication is separate from tag availability. The existing `1.0.0` tag does not contain these actions.
 
 ### Requirements and Safety
 
@@ -606,7 +606,7 @@ All components execute on standard **GitLab Linux runners** (`alpine:3.20`) and 
 | Component | Path | Purpose |
 | :--- | :--- | :--- |
 | **`pack`** | [`templates/pack.yml`](templates/pack.yml) | Connects to IBM i over SSH, stamps matching objects with a 10-character version string (`USRDFNATR`), packages them via `#PACK`, and downloads the `.savf` and HTML manifest as GitLab job artifacts. |
-| **`unpack`** | [`templates/unpack.yml`](templates/unpack.yml) | Uploads a `.savf` artifact (and optional JSON `MAPFILE`) over SCP to IBM i, runs `#UNPACK` in strict 8-tier dependency precedence order (`10` $\rightarrow$ `80`) with authority/data preservation and optional rollback backup, and downloads the deployment HTML manifest. |
+| **`unpack`** | [`templates/unpack.yml`](templates/unpack.yml) | Uploads a `.savf` artifact (and optional JSON `MAPFILE`) over SCP to IBM i, runs `#UNPACK` in nine dependency precedence tiers (`10` $\rightarrow$ `80`, including `15`) with authority/data preservation and optional rollback backup, and downloads the deployment HTML manifest. |
 | **`ibmi-cicd`** | [`templates/ibmi-cicd.yml`](templates/ibmi-cicd.yml) | End-to-end IBM i pipeline component combining TOBi (`makei`) build (`ibmi:build`), `iRPGUnit` test execution with native GitLab JUnit XML reporting (`ibmi:test`), and `#PACK` (`ibmi:pack`). |
 
 ---
@@ -666,7 +666,7 @@ include:
       manifest_name: "pack-manifest.html"
       artifact_dir: "artifacts"
 
-  # Deploy the packaged .savf artifact to Production in 8-tier dependency order
+  # Deploy the packaged .savf artifact to Production in dependency order
   - component: $CI_SERVER_FQDN/<namespace>/ibm-i-packager/unpack@1.0.0
     inputs:
       job_name: "deploy:production"
@@ -795,12 +795,12 @@ To list this project in the **GitLab.com CI/CD Catalog** (`Explore -> CI/CD Cata
    - Go to **Settings $\rightarrow$ General $\rightarrow$ Visibility, project features, permissions**.
    - Turn on the **CI/CD Catalog project** toggle and click **Save changes**.
 3. **Create a Semantic Version Tag**:
-   - Push a semantic version tag without a `v` prefix (e.g., `1.0.0`, not `v1.0.0`):
+   - `1.1.0` is already published to the Catalog. For future releases, push a new, unused semantic version tag without a `v` prefix (for example, `1.1.1`):
      ```bash
-     git tag -a 1.0.0 -m "Initial GitLab CI/CD Catalog release"
-     git push origin 1.0.0
+     git tag -a 1.1.1 -m "GitLab CI/CD Catalog release 1.1.1"
+     git push origin 1.1.1
      ```
-   - The `create-catalog-release` job in [`.gitlab-ci.yml`](.gitlab-ci.yml) uses the `release` keyword (via the `glab` CLI image) after the serialized `ibmi-pipeline` child pipeline (build, iRPGUnit tests, `#PACK`) passes, and publishes version `1.0.0` to the **GitLab CI/CD Catalog**. Releases created manually in the GitLab UI are **not** published to the Catalog.
+   - The `create-catalog-release` job in [`.gitlab-ci.yml`](.gitlab-ci.yml) uses the `release` keyword (via the `glab` CLI image) after the serialized `ibmi-pipeline` child pipeline (build, iRPGUnit tests, `#PACK`) passes, and publishes the tagged version to the **GitLab CI/CD Catalog**. Releases created manually in the GitLab UI are **not** published to the Catalog. Do not move existing release tags.
    - Until the first tag pipeline succeeds, the project's **Releases** page shows *"There was a problem fetching the CI/CD Catalog releases"*; this clears after the first published release.
 
 ---
