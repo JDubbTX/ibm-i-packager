@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="700" viewBox="0 0 1100 700" role="img" aria-labelledby="title description">
+  <title id="title">IBM i Packager architecture and workflow</title>
+  <desc id="description">PACK stamps build objects and saves a package and HTML manifest. UNPACK inspects the package, maps libraries, optionally backs up existing objects, restores in nine dependency tiers, reapplies authorities, optionally migrates data, and writes a deployment manifest.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#475569"/>
+    </marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b4d; font-size: 17px; }
+      .heading { font-size: 23px; font-weight: bold; }
+      .label { font-size: 15px; fill: #334155; }
+      .node { fill: #ffffff; stroke: #2563eb; stroke-width: 2; }
+      .line { fill: none; stroke: #475569; stroke-width: 2; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1100" height="700" rx="12" fill="#ffffff"/>
+  <rect x="20" y="20" width="1060" height="265" rx="12" fill="#eff6ff" stroke="#93c5fd"/>
+  <text x="45" y="57" class="heading">1. Build and package (PACK / #PACK)</text>
+
+  <rect class="node" x="45" y="100" width="200" height="80" rx="8"/>
+  <text x="145" y="133" text-anchor="middle">Build library</text>
+  <text x="145" y="159" text-anchor="middle">(e.g. BUILDLIB)</text>
+  <path class="line" d="M245 140 H385"/>
+  <text class="label" x="315" y="111" text-anchor="middle">QLICOBJD</text>
+  <text class="label" x="315" y="130" text-anchor="middle">Stamp USRDFNATR</text>
+
+  <rect class="node" x="385" y="100" width="225" height="80" rx="8"/>
+  <text x="497" y="133" text-anchor="middle">Version-stamped</text>
+  <text x="497" y="159" text-anchor="middle">QSYS objects</text>
+  <path class="line" d="M610 140 H785"/>
+  <text class="label" x="697" y="128" text-anchor="middle">SAVOBJ</text>
+  <rect class="node" x="785" y="100" width="270" height="80" rx="8"/>
+  <text x="920" y="133" text-anchor="middle">Save file (*SAVF)</text>
+  <text x="920" y="159" text-anchor="middle">or IFS stream file (*STMF)</text>
+
+  <path class="line" d="M497 180 V215"/>
+  <rect class="node" x="365" y="215" width="265" height="48" rx="8"/>
+  <text x="497" y="245" text-anchor="middle">HTML package manifest</text>
+  <path class="line" d="M920 180 V312 H255 V400"/>
+  <text class="label" x="575" y="305" text-anchor="middle">Package artifact</text>
+
+  <rect x="20" y="335" width="1060" height="345" rx="12" fill="#f0fdf4" stroke="#86efac"/>
+  <text x="45" y="373" class="heading">2. Inspect, map, and deploy (UNPACK / #UNPACK)</text>
+  <path class="line" d="M255 380 V400"/>
+  <rect class="node" x="65" y="400" width="380" height="90" rx="8"/>
+  <text x="255" y="428" text-anchor="middle">QSRLSAVF + library mapping</text>
+  <text x="255" y="452" text-anchor="middle">(LIBMAP / JSON MAPFILE)</text>
+  <text x="255" y="476" text-anchor="middle">Sort by nine dependency tiers</text>
+
+  <path class="line" d="M445 430 H730"/>
+  <text class="label" x="585" y="417" text-anchor="middle">Optional pre-deployment backup</text>
+  <rect class="node" x="730" y="400" width="300" height="60" rx="8"/>
+  <text x="880" y="437" text-anchor="middle">Rollback save file (BKPSAVF)</text>
+
+  <path class="line" d="M255 490 V545"/>
+  <text class="label" x="265" y="514">Restore + reapply authorities</text>
+  <text class="label" x="265" y="534">Optional CPYF *MAP *DROP</text>
+  <rect class="node" x="65" y="545" width="380" height="60" rx="8"/>
+  <text x="255" y="570" text-anchor="middle">Target data library</text>
+  <text x="255" y="592" text-anchor="middle">(e.g. PRODDTA)</text>
+
+  <path class="line" d="M445 475 H585 V575 H730"/>
+  <text class="label" x="600" y="510">Restore + reapply</text>
+  <text class="label" x="600" y="530">authorities</text>
+  <rect class="node" x="730" y="545" width="300" height="60" rx="8"/>
+  <text x="880" y="570" text-anchor="middle">Target program library</text>
+  <text x="880" y="592" text-anchor="middle">(e.g. PRODPGM)</text>
+
+  <path class="line" d="M255 605 V640 H465"/>
+  <path class="line" d="M880 605 V640 H765"/>
+  <rect class="node" x="465" y="615" width="300" height="50" rx="8"/>
+  <text x="615" y="646" text-anchor="middle">HTML deployment manifest</text>
+</svg>

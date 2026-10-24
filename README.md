@@ -6,6 +6,8 @@
 [![IBM i](https://img.shields.io/badge/IBM%20i-7.4%2B-054ADA.svg)](https://www.ibm.com/it-infrastructure/power/os/ibm-i)
 [![Built with TOBi](https://img.shields.io/badge/Built%20with-IBM%20i%20TOBi%20(makei)-0f62fe.svg)](https://github.com/IBM/ibmi-tobi)
 [![Tested with iRPGUnit](https://img.shields.io/badge/Tested%20with-iRPGUnit-24a148.svg)](https://irpgunit.sourceforge.io/)
+[![GitLab source](https://img.shields.io/badge/GitLab-source-FC6D26?logo=gitlab&logoColor=white)](https://gitlab.com/ibm-i-stuff/ibm-i-packager)
+[![GitHub mirror](https://img.shields.io/badge/GitHub-mirror-181717?logo=github&logoColor=white)](https://github.com/JDubbTX/ibm-i-packager)
 
 ---
 
@@ -46,22 +48,9 @@ Data migration uses field mapping and drops unmatched fields; it is not a guaran
 
 ## Architecture & Workflow
 
-```mermaid
-flowchart LR
-    subgraph Build ["1. Build & Package (#PACK)"]
-        SRC["Build Library\n(e.g. BUILDLIB)"] -->|"QLICOBJD\nStamp USRDFNATR"| STAMP["Version-Stamped\nQSYS Objects"]
-        STAMP -->|"SAVOBJ"| SAVF["Save File (*SAVF)\nor IFS Stream File (*STMF)"]
-        STAMP --> PMAN["HTML Package Manifest"]
-    end
+![IBM i packaging and deployment workflow: stamp build objects, save a package and manifest, then inspect and route the package through nine dependency tiers with optional backup and data preservation.](docs/images/architecture-workflow.svg)
 
-    subgraph Deploy ["2. Precedence Unpack (#UNPACK)"]
-        SAVF -->|"QSRLSAVF (SAVF0200)\n+ JSON MAPFILE"| SORT["Sort by 9 Dependency\nPrecedence Tiers"]
-        SORT -->|"Pre-Unpack Backup"| BKP["Rollback Save File\n(BKPSAVF)"]
-        SORT -->|"Route + Preserve Auth\n+ CPYF *MAP *DROP"| DTA["Target Data Lib\n(e.g. PRODDTA)"]
-        SORT -->|"Route + Preserve Auth"| PGM["Target Program Lib\n(e.g. PRODPGM)"]
-        SORT --> UMAN["HTML Deployment Manifest"]
-    end
-```
+`PACK` stamps build objects via `QLICOBJD`, saves them with `SAVOBJ`, and writes a package manifest. `UNPACK` inspects the package via `QSRLSAVF`, applies library mapping, optionally backs up existing objects, and restores in nine dependency tiers. It reapplies authorities, optionally migrates existing table data using `CPYF *MAP *DROP`, and writes a deployment manifest.
 
 ---
 
@@ -397,6 +386,8 @@ Using a JSON mapping file (see [`examples/unpack-map.json`](examples/unpack-map.
 
 ## Reusable GitHub Actions and Marketplace
 
+![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white)
+
 The root [`action.yml`](action.yml) defines **IBM i Packager**, supporting `operation: pack`, `unpack`, or `ci`. The [`pack`](actions/pack/action.yml) and [`unpack`](actions/unpack/action.yml) convenience actions expose operation-specific inputs. All three run the same implementation, using the existing GitLab component commands rather than a separate packaging engine.
 
 **Version `1.1.0` is tagged in GitLab and mirrored to GitHub**, so the examples below can use that ref now. GitHub Marketplace publication is separate from tag availability. The existing `1.0.0` tag does not contain these actions.
@@ -508,6 +499,8 @@ For release validation in this repository, the same workflow also supports **Act
 
 ### Publish the Marketplace Listing
 
+![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white)
+
 Only the root action gets a Marketplace listing; the subdirectory actions and reusable workflow remain callable from the same release.
 
 1. Commit and push the prepared files to GitLab. Confirm mirroring, CI tests, and action smoke tests succeed on GitHub.
@@ -528,6 +521,8 @@ The GitHub destination is [JDubbTX/ibm-i-packager](https://github.com/JDubbTX/ib
 Keep GitLab CI enabled; GitHub Actions runs independently against separate IBM i resources.
 
 ### Configure the GitHub Repository
+
+![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white)
 
 1. Create an **empty, public** `JDubbTX/ibm-i-packager` repository. Do not initialize a README, license, or `.gitignore`.
 2. In GitHub **Settings > Environments**, create `ibmi-github`.
@@ -552,6 +547,8 @@ The IBM i user needs the same build/test authorities and installed TOBi/iRPGUnit
 
 ### Configure One-Way GitLab Push Mirroring
 
+![GitLab](https://img.shields.io/badge/GitLab-FC6D26?logo=gitlab&logoColor=white) → ![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white)
+
 In GitLab **Settings > Repository > Mirroring repositories**:
 
 1. Add `ssh://github.com/JDubbTX/ibm-i-packager.git` with direction **Push** and username `git`.
@@ -565,6 +562,8 @@ Use GitLab's [built-in push mirroring](https://docs.gitlab.com/user/project/repo
 Make changes in GitLab, including any changes proposed on GitHub. Do not merge directly into the GitHub mirror. GitLab Catalog releases remain managed by GitLab CI; mirroring a tag does not create a GitHub Release.
 
 ### GitHub Workflow Behavior
+
+![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white)
 
 [`ibmi.yml`](.github/workflows/ibmi.yml) runs on pushes to `main`, on tags, and through **Actions > IBM i build, test, and package > Run workflow**. It:
 
@@ -597,6 +596,8 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s .github/scripts -p 'te
 
 ## GitLab CI/CD Catalog Components (`templates/`)
 
+![GitLab](https://img.shields.io/badge/GitLab-FC6D26?logo=gitlab&logoColor=white)
+
 This repository is structured as an official **GitLab CI/CD Catalog Component project** so any IBM i project on GitLab.com (or self-managed GitLab) can include `#PACK`, `#UNPACK`, or a complete `makei` + `iRPGUnit` + `#PACK` pipeline via `include: - component: ...`.
 
 All components execute on standard **GitLab Linux runners** (`alpine:3.20`) and connect to the target IBM i host over SSH/SCP.
@@ -612,6 +613,8 @@ All components execute on standard **GitLab Linux runners** (`alpine:3.20`) and 
 ---
 
 ### Prerequisite GitLab CI/CD Variables
+
+![GitLab](https://img.shields.io/badge/GitLab-FC6D26?logo=gitlab&logoColor=white)
 
 The components use the following variables, inherited from the `ibm-i-stuff` GitLab group unless overridden in the project:
 
@@ -644,6 +647,8 @@ The components check for a matching entry before starting SSH. A matching entry 
 ---
 
 ### Consuming the Components in Your `.gitlab-ci.yml`
+
+![GitLab](https://img.shields.io/badge/GitLab-FC6D26?logo=gitlab&logoColor=white)
 
 #### Option A: Standalone `pack` and `unpack` Components
 
@@ -787,6 +792,8 @@ Pushing a branch and a tag for the same commit now queues the second pipeline in
 
 ### Publishing This Repository to the GitLab CI/CD Catalog
 
+![GitLab](https://img.shields.io/badge/GitLab-FC6D26?logo=gitlab&logoColor=white)
+
 To list this project in the **GitLab.com CI/CD Catalog** (`Explore -> CI/CD Catalog`):
 
 1. **Set a Project Description & Avatar**:
@@ -827,11 +834,15 @@ The automated integration test suite in [`test/qrpglesrc/pkgtest.test.sqlrpgle`]
 
 ### Viewing Test Results in GitLab
 
+![GitLab](https://img.shields.io/badge/GitLab-FC6D26?logo=gitlab&logoColor=white)
+
 Open the IBM i child pipeline, select the **Tests** tab, and choose **ibmi:test** to view the iRPGUnit results published from JUnit XML. The report lists each test's status and execution time; select **View details** to inspect an individual result.
 
 ![GitLab pipeline Tests tab showing six passing iRPGUnit tests with zero failures and errors](docs/images/gitlab-test-results.png)
 
 ### Viewing Test Results in GitHub
+
+![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white)
 
 Open a GitHub Actions run and select **Summary** to view the **iRPGUnit integration tests** report, including passed, failed, and skipped counts and individual test results. Select the **iRPGUnit integration tests** check in the sidebar for the dedicated test report.
 
